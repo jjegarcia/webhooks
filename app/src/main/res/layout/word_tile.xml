@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              android:layout_width="wrap_content"
+              android:layout_height="wrap_content">
+    <include android:id="@+id/letter1"
+             layout="@layout/letter_tile"
+             android:layout_width="36dp"
+             android:layout_height="36dp"/>
+    <include android:id="@+id/letter2"
+             layout="@layout/letter_tile"
+             android:layout_width="36dp"
+             android:layout_height="36dp"/>
+    <include android:id="@+id/letter3"
+             layout="@layout/letter_tile"
+             android:layout_width="36dp"
+             android:layout_height="36dp"/>
+    <include android:id="@+id/letter4"
+             layout="@layout/letter_tile"
+             android:layout_width="36dp"
+             android:layout_height="36dp"/>
+    <include android:id="@+id/letter5"
+             layout="@layout/letter_tile"
+             android:layout_width="36dp"
+             android:layout_height="36dp"/>
+    <include android:id="@+id/letter6"
+             layout="@layout/letter_tile"
+             android:layout_width="36dp"
+             android:layout_height="36dp"/>
+</LinearLayout>

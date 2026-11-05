@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:app="http://schemas.android.com/apk/res-auto"
+        xmlns:tools="http://schemas.android.com/tools">
+
+    <data>
+
+        <variable
+                name="viewModel"
+                type="com.application.hooksPlus.rooms.RoomsViewModel" />
+    </data>
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="#dce4ed"
+            tools:context=".rooms.RoomsActivity">
+
+        <LinearLayout
+                android:id="@+id/navBar"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent">
+
+            <ImageView
+                    android:id="@+id/backButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="56dp"
+                    android:onClick="@{(view) -> viewModel.backPrevious(view)}"
+                    android:src="@drawable/ic_arrow_back_ios_new_24px"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent" />
+
+            <ImageView
+                    android:id="@+id/roomIcon"
+                    android:layout_width="56dp"
+                    android:layout_height="56dp"
+                    android:layout_marginLeft="10dp"
+                    android:src="@drawable/ic_chrome_reader_mode_24px"
+                    app:layout_constraintStart_toEndOf="@id/backButton"
+                    app:layout_constraintTop_toTopOf="parent" />
+
+            <TextView
+                    android:id="@+id/playerName"
+                    android:layout_width="wrap_content"
+                    android:layout_height="56dp"
+                    android:layout_marginRight="10dp"
+                    android:gravity="center"
+                    android:text="@={viewModel.playerNameText}"
+                    app:layout_constraintStart_toEndOf="@id/roomIcon"
+                    app:layout_constraintTop_toTopOf="parent" />
+
+            <ImageView
+                    android:id="@+id/selectRoot"
+                    android:layout_width="56dp"
+                    android:layout_height="56dp"
+                    android:src="@drawable/ic_seleted_root_size"
+                    app:layout_constraintStart_toEndOf="@+id/playerName"
+                    app:layout_constraintTop_toTopOf="parent" />
+
+            <Spinner
+                    android:id="@+id/rootSizeSelected"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    app:layout_constraintEnd_toEndOf="@+id/selectRoot"
+                    app:layout_constraintTop_toTopOf="parent" />
+
+
+        </LinearLayout>
+
+        <LinearLayout
+                android:id="@+id/listHeaderLayout"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/navBar">
+
+            <ImageView
+                    android:id="@+id/idIcon"
+                    android:layout_width="60dp"
+                    android:layout_height="60dp"
+                    android:layout_marginLeft="5dp"
+                    android:layout_marginRight="20dp"
+                    android:src="@drawable/ic_vpn_key_24px" />
+
+            <ImageView
+                    android:id="@+id/peopleIcon"
+                    android:layout_width="56dp"
+                    android:layout_height="56dp"
+                    android:layout_marginRight="20dp"
+                    android:src="@drawable/ic_people_24px" />
+
+            <ImageView
+                    android:id="@+id/closingTime"
+                    android:layout_width="56dp"
+                    android:layout_height="56dp"
+                    android:layout_marginRight="20dp"
+                    android:src="@drawable/ic_access_time_24px" />
+
+            <ImageView
+                    android:id="@+id/resultsIcon"
+                    android:layout_width="56dp"
+                    android:layout_height="56dp"
+                    android:layout_marginRight="20dp"
+                    android:src="@drawable/ic_insights_24px"
+                    android:visibility="gone" />
+
+            <ImageView
+                    android:id="@+id/playIcon"
+                    android:layout_width="56dp"
+                    android:layout_height="56dp"
+                    android:src="@drawable/ic_playlist_play_24px" />
+
+        </LinearLayout>
+
+        <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/roomsRecyclerView"
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/listHeaderLayout" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</layout>

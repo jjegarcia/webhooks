@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              xmlns:app="http://schemas.android.com/apk/res-auto"
+        xmlns:tools="http://schemas.android.com/tools"
+        android:layout_width="30dp"
+              android:layout_height="30dp">
+
+    <ImageView
+            android:id="@+id/onDot"
+            android:layout_width="15dp"
+            android:layout_height="15dp"
+            android:layout_weight="1"
+            app:srcCompat="@drawable/ic_dot"
+            tools:ignore="VectorDrawableCompat" />
+    <ImageView
+            android:id="@+id/offDot"
+            android:layout_width="15dp"
+            android:layout_height="15dp"
+            android:layout_weight="1"
+            app:srcCompat="@drawable/ic_no_dot"
+            tools:ignore="VectorDrawableCompat" />
+</LinearLayout>
