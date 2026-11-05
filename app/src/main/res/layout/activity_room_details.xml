@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <data>
+
+        <variable
+            name="viewModel"
+            type="com.application.hooksPlus.roomDetails.RoomDetailsViewModel" />
+    </data>
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="#dce4ed"
+        tools:context=".roomDetails.RoomDetailsActivity">
+
+        <LinearLayout
+            android:id="@+id/navBar"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            >
+
+        <ImageView
+            android:id="@+id/backButton"
+            android:layout_width="wrap_content"
+            android:layout_height="56dp"
+            android:onClick="@{viewModel::backPrevious}"
+            android:src="@drawable/ic_arrow_back_ios_new_24px"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <ImageView
+            android:id="@+id/roomIcon"
+            android:layout_width="56dp"
+            android:layout_height="56dp"
+            android:src="@drawable/ic_vpn_key_24px"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintStart_toEndOf="@id/backButton"
+            android:layout_marginLeft="10dp"
+            />
+
+        <TextView
+            android:id="@+id/roomId"
+            android:layout_width="wrap_content"
+            android:layout_height="56dp"
+            android:layout_marginRight="10dp"
+            android:gravity="center"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintStart_toEndOf="@id/roomIcon"
+            android:text="@{viewModel.roomIdText}"/>
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/listHeaderLayout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/navBar">
+
+
+            <ImageView
+                android:id="@+id/peopleIcon"
+                android:layout_width="56dp"
+                android:layout_height="56dp"
+                android:layout_marginRight="10dp"
+                android:src="@drawable/ic_account_circle_24px"
+                android:visibility="gone"/>
+
+            <ImageView
+                android:id="@+id/nameIcon"
+                android:layout_width="56dp"
+                android:layout_height="56dp"
+                android:layout_marginRight="160dp"
+                android:src="@drawable/ic_face_24px" />
+
+            <ImageView
+                android:id="@+id/emailIcon"
+                android:layout_width="56dp"
+                android:layout_height="56dp"
+                android:layout_marginRight="30dp"
+                android:src="@drawable/ic_alternate_email_24px"
+                android:visibility="gone"/>
+
+           <ImageView
+                android:id="@+id/rankingIcon"
+                android:layout_width="56dp"
+                android:layout_height="56dp"
+                android:layout_marginRight="0dp"
+                android:src="@drawable/ic_military_tech_24px"
+               android:visibility="gone"/>
+
+            <ImageView
+                android:id="@+id/scoreIcon"
+                android:layout_width="56dp"
+                android:layout_height="56dp"
+                android:src="@drawable/ic_insights_24px" />
+
+            <ImageView
+                android:id="@+id/placeIcon"
+                android:layout_width="56dp"
+                android:layout_height="56dp"
+                android:layout_marginRight="0dp"
+                android:src="@drawable/ic_format_list_numbered_24px"
+                android:visibility="gone"/>
+
+        </LinearLayout>
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/roomsDetailsRecyclerView"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/listHeaderLayout" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</layout>

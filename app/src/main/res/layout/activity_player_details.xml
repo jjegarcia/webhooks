@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <data>
+
+        <variable
+            name="viewModel"
+            type="com.application.hooksPlus.playerDetails.PlayerDetailsViewModel" />
+    </data>
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="#dce4ed"
+        tools:context=".playerDetails.PlayerDetailsActivity">
+
+        <LinearLayout
+            android:id="@+id/navBar"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent">
+
+            <ImageView
+                android:id="@+id/backButton"
+                android:layout_width="wrap_content"
+                android:layout_height="56dp"
+                android:onClick="@{viewModel::backPrevious}"
+                android:src="@drawable/ic_arrow_back_ios_new_24px"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+
+            <ImageView
+                android:id="@+id/roomIcon"
+                android:layout_width="56dp"
+                android:layout_height="56dp"
+                android:layout_marginLeft="10dp"
+                android:src="@drawable/ic_face_24px"
+                app:layout_constraintStart_toEndOf="@id/backButton"
+                app:layout_constraintTop_toTopOf="parent" />
+
+            <TextView
+                android:id="@+id/roomId"
+                android:layout_width="wrap_content"
+                android:layout_height="56dp"
+                android:layout_marginRight="10dp"
+                android:gravity="center"
+                android:text="@{viewModel.playerNameText}"
+                app:layout_constraintStart_toEndOf="@id/roomIcon"
+                app:layout_constraintTop_toTopOf="parent" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/resultsLayout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/navBar">
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/rootResultsRecyclerView"
+                android:layout_width="250dp"
+                android:layout_height="50dp"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/navBar" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/ResultsBar"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent">
+
+            <include
+                android:id="@+id/score_layout"
+                layout="@layout/score_tile"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginRight="10dp"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                tools:matchSummaryInfo="@{viewModel.matchSummaryInfo}" />
+
+            <include
+                android:id="@+id/timer_layout"
+                layout="@layout/timer_tile"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginRight="10dp"
+                app:layout_constraintEnd_toEndOf="parent"
+                tools:matchSummaryInfo="@{viewModel.matchSummaryInfo}" />
+
+            <include
+                android:id="@+id/place_layout"
+                layout="@layout/place_tile"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginRight="10dp"
+                android:visibility="gone"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                tools:matchSummaryInfo="@{viewModel.matchSummaryInfo}" />
+        </LinearLayout>
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/playerDetailsRecyclerView"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_marginTop="30dp"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/resultsLayout" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</layout>

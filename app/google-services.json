@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "376222747532",
+    "firebase_url": "https://hooksplus-ffa2f-default-rtdb.firebaseio.com",
+    "project_id": "hooksplus-ffa2f",
+    "storage_bucket": "hooksplus-ffa2f.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:376222747532:android:8bc449b2b4493cca4f64a9",
+        "android_client_info": {
+          "package_name": "com.application.hooksPlus"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "376222747532-ch3cve43m90bakrh4qpv0evfm9be9qdd.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.application.hooksPlus",
+            "certificate_hash": "55b3fe10bb725a37c7ab90e8fc4dfb4afcb429ba"
+          }
+        },
+        {
+          "client_id": "376222747532-9lcmtnkvjla0r1h7fupp5lk0nvdm61i8.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCabmwrYg_kgFav0BwFf1fNU0x_ZtE44Fo"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "376222747532-9lcmtnkvjla0r1h7fupp5lk0nvdm61i8.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
