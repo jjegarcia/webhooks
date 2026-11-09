@@ -22,8 +22,8 @@ for (const [, word, value] of hookTable.matchAll(/WordStructure\("([A-Z]+)", "([
   }
 }
 
-if (rootMap.size < 100) {
-  throw new Error('The root picker requires at least 100 roots from the hook table')
+if (rootMap.size === 0) {
+  throw new Error('The hook table contains no roots')
 }
 
 const startingRoots = ['AT', 'IN', 'AR', 'AN', 'AM']
