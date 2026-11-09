@@ -15,4 +15,8 @@
     <string name="score">score</string>
     <string name="timer">timer</string>
     <string name="place">place</string>
+    <string name="select_root">Select a root</string>
+    <string name="select_root_es">Selecciona una raíz</string>
+    <string name="close_root_picker">Close root picker</string>
+    <string name="close_root_picker_es">Cerrar selector de raíces</string>
 </resources>

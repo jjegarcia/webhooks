@@ -69,18 +69,32 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/playButton" />
 
+    <ImageView
+            android:id="@+id/rootPickerButton"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:clickable="true"
+            android:contentDescription="@string/select_root"
+            android:focusable="true"
+            android:padding="8dp"
+            android:src="@drawable/ic_format_list_numbered_24px"
+            android:tint="@color/text_black"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/playButton" />
+
     <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/rootsRecyclerView"
             android:layout_width="0dp"
             android:layout_height="0dp"
             android:layout_marginLeft="20dp"
-            android:layout_marginTop="10dp"
+            android:layout_marginTop="4dp"
             android:layout_marginBottom="40dp"
             android:scrollbars="vertical"
+            app:layout_constraintTop_toBottomOf="@id/rootPickerButton"
             app:layout_constraintBottom_toTopOf="@id/keyboardRecyclerView"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toEndOf="@+id/boardRecyclerView"
-            app:layout_constraintTop_toBottomOf="@id/playButton" />
+            app:layout_constraintStart_toEndOf="@+id/boardRecyclerView" />
 
     <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/keyboardRecyclerView"

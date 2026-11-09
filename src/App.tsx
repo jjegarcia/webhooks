@@ -1,18 +1,10 @@
 import { useEffect, useMemo, useState } from 'react'
 import hooksLogo from '../app/src/main/res/drawable/hooks_logo.png'
+import { roots } from './roots'
 
 type Side = 'left' | 'right'
 type Mode = 'practice' | 'game' | 'ninja' | 'battle'
 type Language = 'EN' | 'ES'
-type Root = { value: string; left: string[]; right: string[]; hint: string }
-
-const roots: Root[] = [
-  { value: 'AT', left: ['B', 'C', 'F', 'G', 'H', 'K', 'L', 'M', 'O', 'P', 'Q', 'R', 'S', 'T', 'V', 'W'], right: ['E', 'T'], hint: 'a small word with plenty of hooks' },
-  { value: 'IN', left: ['B', 'F', 'P', 'S', 'T', 'W'], right: ['K', 'N'], hint: 'a word that can begin or finish a thought' },
-  { value: 'AR', left: ['B', 'C', 'F', 'J', 'M', 'P', 'T', 'W'], right: ['C', 'E', 'M', 'K', 'T'], hint: 'find your way from here' },
-  { value: 'AN', left: ['B', 'C', 'F', 'M', 'P', 'R', 'T', 'V', 'W'], right: ['D', 'T', 'Y'], hint: 'one is all you need to start' },
-  { value: 'AM', left: ['B', 'C', 'D', 'G', 'H', 'J', 'L', 'M', 'N', 'P', 'R', 'T', 'Y'], right: ['A', 'I', 'P', 'U'], hint: 'a bright start to the day' },
-]
 
 const copy = {
   EN: {
@@ -452,7 +444,7 @@ function App() {
             </section>
 
             <section className="side-card root-card">
-              <div className="side-card-title"><div><span className="section-kicker">{t.roots}</span><h2>{language === 'EN' ? 'Pick a new starting point' : 'Elige un nuevo comienzo'}</h2></div></div>
+              <div className="side-card-title"><div><span className="section-kicker">{t.roots} ({roots.length})</span><h2>{language === 'EN' ? 'Pick a new starting point' : 'Elige un nuevo comienzo'}</h2></div></div>
               <div className="root-picker">
                 {roots.map((root, index) => <button key={root.value} className={`root-chip ${rootIndex === index ? 'active' : ''}`} onClick={() => resetRound(index)} aria-pressed={rootIndex === index}>{root.value}{rootIndex === index && <span className="root-chip-dot" />}</button>)}
               </div>

@@ -2,6 +2,7 @@ package com.application.hooksPlus.main
 
 import android.annotation.SuppressLint
 import android.app.Activity
+import android.app.Dialog
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
@@ -9,6 +10,7 @@ import android.provider.Settings
 import android.util.Log
 import android.view.MotionEvent
 import android.view.View
+import android.view.WindowManager
 import android.widget.ImageView
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
@@ -99,6 +101,43 @@ class BoardActivity : AppCompatActivity() {
         shiftButton.setOnClickListener {
             additionalHandlersBridge.shitftHandler?.toggleButton(button = it as ImageView)
         }
+        rootPickerButton.setOnClickListener {
+            showRootPicker()
+        }
+    }
+
+    private fun showRootPicker() {
+        val dialog = Dialog(this)
+        dialog.setContentView(R.layout.dialog_root_picker)
+        dialog.setCancelable(true)
+
+        val title = dialog.findViewById<android.widget.TextView>(R.id.rootPickerTitle)
+        val closeButton = dialog.findViewById<ImageView>(R.id.rootPickerCloseButton)
+        val recycler = dialog.findViewById<RecyclerView>(R.id.rootPickerRecyclerView)
+        val isEnglish = additionalHandlersBridge.languageHandler?.language == Languages.EN
+        title.setText(if (isEnglish) R.string.select_root else R.string.select_root_es)
+        closeButton.contentDescription =
+            getString(if (isEnglish) R.string.close_root_picker else R.string.close_root_picker_es)
+        closeButton.setOnClickListener { dialog.dismiss() }
+        recycler.layoutManager = LinearLayoutManager(this)
+        recycler.adapter = RootsAdapter(
+            rootSize = rootSize,
+            masterArray = masterArray,
+            handlersBridge = handlersBridge,
+            additionalHandlersBridge = additionalHandlersBridge,
+            hashTables = hashTables,
+            onRootSelected = {
+                adaptersBridge.rootsAdapter?.notifyDataSetChanged()
+                dialog.dismiss()
+            }
+        )
+
+        dialog.show()
+        dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
+        dialog.window?.setLayout(
+            WindowManager.LayoutParams.MATCH_PARENT,
+            WindowManager.LayoutParams.MATCH_PARENT
+        )
     }
 
     private fun executeBattleCommand(root: String?, showLeftLetter: Boolean) {
@@ -566,4 +605,3 @@ class BoardActivity : AppCompatActivity() {
         const val MAX_WORD_COUNTER = 4
     }
 }
-

@@ -20,7 +20,8 @@ class RootsAdapter constructor(
     val masterArray: List<CurrentLists>,
     val handlersBridge: HandlersBridge,
     val additionalHandlersBridge: AdditionalHandlersBridge,
-    val hashTables: HashTables
+    val hashTables: HashTables,
+    private val onRootSelected: (() -> Unit)? = null
 ) : Adapter<RootsAdapter.ViewHolder>() {
 
     class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
@@ -52,6 +53,7 @@ class RootsAdapter constructor(
                     masterArray[rootSize - 1].rootParametersList
                 )
                 notifyDataSetChanged()
+                onRootSelected?.invoke()
             }
         }
     }
