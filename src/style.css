@@ -151,16 +151,19 @@ button:focus-visible, a:focus-visible { outline: 3px solid #85c89f; outline-offs
 .keyboard-heading strong, .keyboard-heading span { display: block; }
 .keyboard-heading strong { font-size: 11px; }
 .keyboard-heading > div > span { margin-top: 3px; color: #98a19a; font-size: 9px; }
-.keyboard-status { display: flex; align-items: center; gap: 6px; color: #859087; font-size: 9px; }
-.status-dot { width: 6px; height: 6px; border-radius: 50%; background: #65a976; }
+.hints-toggle { padding: 7px 9px; border: 1px solid #d5e5d8; border-radius: 6px; background: #eef7ef; color: #3b8051; cursor: pointer; font: 700 9px 'Manrope', sans-serif; }
+.hints-toggle[aria-pressed="false"] { border-color: #e4eae4; background: #f7f9f7; color: #68746b; }
+.hints-toggle:focus-visible { outline: 2px solid #3b8051; outline-offset: 2px; }
 .letter-grid { display: grid; grid-template-columns: repeat(13, minmax(23px, 1fr)); gap: 6px; }
 .letter-key { position: relative; height: 35px; border: 1px solid #e9ede9; border-radius: 7px; background: #f7f9f7; color: #68746b; cursor: pointer; font: 600 11px 'Manrope', sans-serif; transition: .14s ease; }
 .letter-key:hover:not(:disabled) { transform: translateY(-2px); border-color: #b7d9bf; background: #edf7ef; color: #36784b; }
 .letter-key.key-available { border-color: #cfe5d2; background: #eef7ef; color: #3b8051; }
 .letter-key.key-used { border-color: #e4eae4; background: #f2f5f2; color: #adb6ae; }
 .letter-key:disabled { cursor: not-allowed; opacity: .58; }
-.key-dot { position: absolute; right: 4px; bottom: 4px; width: 4px; height: 4px; border-radius: 50%; background: #62aa76; }
-.keyboard-footer { display: flex; align-items: center; gap: 15px; margin-top: 12px; }
+.key-dot { position: absolute; right: 4px; bottom: 4px; width: 7px; height: 7px; border-radius: 50%; }
+.key-dot.correct, .legend-dot.correct { background: #278445; }
+.key-dot.wrong, .legend-dot.wrong { background: #cf3e3e; }
+.keyboard-footer { display: flex; flex-wrap: wrap; align-items: center; gap: 15px; margin-top: 12px; }
 .keyboard-footer > span { display: flex; align-items: center; gap: 5px; color: #959e97; font-size: 8px; }
 .legend-dot { width: 6px; height: 6px; border-radius: 50%; }
 .legend-dot.green { background: #68b17a; }
@@ -295,7 +298,6 @@ button:focus-visible, a:focus-visible { outline: 3px solid #85c89f; outline-offs
   .feedback-line { font-size: 9px; }
   .keyboard-section { padding: 15px 12px 12px; }
   .keyboard-heading { margin-bottom: 11px; }
-  .keyboard-status { font-size: 8px; }
   .letter-grid { grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 5px; }
   .letter-key { height: 37px; font-size: 11px; }
   .keyboard-footer { gap: 10px; }

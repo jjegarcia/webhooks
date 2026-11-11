@@ -27,6 +27,12 @@ const copy = {
     rightHint: 'Add a letter after the root',
     keyboard: 'Choose a letter',
     keyboardHint: 'Or use your keyboard',
+    hookHints: 'Hook hints',
+    hintsOn: 'On',
+    hintsOff: 'Off',
+    hiddenHook: 'Undiscovered hook',
+    correctGuess: 'Correct guess',
+    wrongGuess: 'Incorrect guess',
     available: 'Available hooks',
     leftHooks: 'BEFORE',
     rightHooks: 'AFTER',
@@ -78,6 +84,12 @@ const copy = {
     rightHint: 'Añade una letra después de la raíz',
     keyboard: 'Elige una letra',
     keyboardHint: 'O usa tu teclado',
+    hookHints: 'Pistas de ganchos',
+    hintsOn: 'Activadas',
+    hintsOff: 'Desactivadas',
+    hiddenHook: 'Gancho sin descubrir',
+    correctGuess: 'Acierto',
+    wrongGuess: 'Error',
     available: 'Ganchos disponibles',
     leftHooks: 'ANTES',
     rightHooks: 'DESPUÉS',
@@ -138,7 +150,9 @@ function App() {
   const [mode, setMode] = useState<Mode>('practice')
   const [rootIndex, setRootIndex] = useState(0)
   const [side, setSide] = useState<Side>('left')
+  const [hintsEnabled, setHintsEnabled] = useState(true)
   const [usedHooks, setUsedHooks] = useState<string[]>([])
+  const [wrongGuesses, setWrongGuesses] = useState<string[]>([])
   const [trail, setTrail] = useState<string[]>([])
   const [score, setScore] = useState(0)
   const [streak, setStreak] = useState(0)
@@ -192,6 +206,7 @@ function App() {
   const resetRound = (nextRootIndex = rootIndex) => {
     setRootIndex(nextRootIndex)
     setUsedHooks([])
+    setWrongGuesses([])
     setTrail([])
     setSide('left')
     setSeconds(40)
@@ -204,8 +219,13 @@ function App() {
     if (!alphabet.includes(letter) || !playing || roundComplete) return
     const possibleLetters = side === 'left' ? currentRoot.left : currentRoot.right
     const key = `${side}:${letter}`
+    if (usedHooks.includes(key)) {
+      setMessage(t.repeated)
+      return
+    }
     if (!possibleLetters.includes(letter)) {
-      setMessage(usedHooks.includes(key) ? t.repeated : t.incorrect)
+      setWrongGuesses((value) => value.includes(key) ? value : [...value, key])
+      setMessage(t.incorrect)
       setStreak(0)
       setMisses((value) => value + 1)
       if (mode !== 'practice') setScore((value) => Math.max(0, value - 5))
@@ -394,28 +414,39 @@ function App() {
               </div>
 
               <div className="keyboard-section">
-                <div className="keyboard-heading"><div><strong>{t.keyboard}</strong><span>{t.keyboardHint}</span></div><span className="keyboard-status"><span className="status-dot" />{t.available}</span></div>
+                <div className="keyboard-heading">
+                  <div><strong>{t.keyboard}</strong><span>{t.keyboardHint}</span></div>
+                  <button className="hints-toggle" type="button" aria-pressed={hintsEnabled} onClick={() => setHintsEnabled((value) => !value)}>
+                    {t.hookHints}: {hintsEnabled ? t.hintsOn : t.hintsOff}
+                  </button>
+                </div>
                 <div className="letter-grid">
                   {alphabet.map((letter) => {
-                    const marker = keyboardMarkers.get(letter)
-                    const used = usedHooks.some((hook) => hook.endsWith(`:${letter}`))
+                    const marker = hintsEnabled ? keyboardMarkers.get(letter) : undefined
+                    const correct = usedHooks.includes(`${side}:${letter}`)
+                    const wrong = wrongGuesses.includes(`${side}:${letter}`)
+                    const used = hintsEnabled && correct
                     return (
                       <button
                         key={letter}
                         className={`letter-key ${marker ? 'key-available' : ''} ${used ? 'key-used' : ''}`}
                         onClick={() => submitLetter(letter)}
                         disabled={!playing || roundComplete}
-                        aria-label={`${letter}${marker ? `, ${marker} hook` : ''}`}
+                        aria-label={`${letter}${correct ? `, ${t.correctGuess}` : wrong ? `, ${t.wrongGuess}` : marker ? `, ${side === 'left' ? t.leftHooks : t.rightHooks}` : ''}`}
                       >
                         {letter}
-                        {marker && <span className="key-dot" />}
+                        {(correct || wrong) && <span className={`key-dot ${correct ? 'correct' : 'wrong'}`} aria-hidden="true" />}
                       </button>
                     )
                   })}
                 </div>
                 <div className="keyboard-footer">
-                  <span><i className="legend-dot green" />{language === 'EN' ? 'Available' : 'Disponible'}</span>
-                  <span><i className="legend-dot grey" />{language === 'EN' ? 'Not a hook' : 'No es un gancho'}</span>
+                  {hintsEnabled && <>
+                    <span><i className="legend-dot green" />{language === 'EN' ? 'Available' : 'Disponible'}</span>
+                    <span><i className="legend-dot grey" />{language === 'EN' ? 'Not a hook' : 'No es un gancho'}</span>
+                  </>}
+                  <span><i className="legend-dot correct" />{t.correctGuess}</span>
+                  <span><i className="legend-dot wrong" />{t.wrongGuess}</span>
                   <button className="switch-side" onClick={() => setSide((value) => value === 'left' ? 'right' : 'left')} disabled={roundComplete}>
                     {t.switchSide}<span>⇄</span>
                   </button>
@@ -431,13 +462,19 @@ function App() {
               <div className="hook-list">
                 <div className="hook-list-heading"><span className="hook-direction">←</span><strong>{t.leftHooks}</strong><span>{currentRoot.left.length - usedHooks.filter((key) => key.startsWith('left:')).length} {t.remaining}</span></div>
                 <div className="hook-letters">
-                  {currentRoot.left.map((letter) => <span className={`hook-chip ${usedHooks.includes(`left:${letter}`) ? 'found' : ''}`} key={letter}>{letter}{usedHooks.includes(`left:${letter}`) && <Icon name="check" />}</span>)}
+                  {currentRoot.left.map((letter) => {
+                    const found = usedHooks.includes(`left:${letter}`)
+                    return <span className={`hook-chip ${found ? 'found' : ''}`} key={letter} aria-label={!hintsEnabled && !found ? t.hiddenHook : undefined}>{hintsEnabled || found ? letter : '?'}{found && <Icon name="check" />}</span>
+                  })}
                 </div>
               </div>
               <div className="hook-list">
                 <div className="hook-list-heading"><span className="hook-direction">→</span><strong>{t.rightHooks}</strong><span>{currentRoot.right.length - usedHooks.filter((key) => key.startsWith('right:')).length} {t.remaining}</span></div>
                 <div className="hook-letters">
-                  {currentRoot.right.map((letter) => <span className={`hook-chip ${usedHooks.includes(`right:${letter}`) ? 'found' : ''}`} key={letter}>{letter}{usedHooks.includes(`right:${letter}`) && <Icon name="check" />}</span>)}
+                  {currentRoot.right.map((letter) => {
+                    const found = usedHooks.includes(`right:${letter}`)
+                    return <span className={`hook-chip ${found ? 'found' : ''}`} key={letter} aria-label={!hintsEnabled && !found ? t.hiddenHook : undefined}>{hintsEnabled || found ? letter : '?'}{found && <Icon name="check" />}</span>
+                  })}
                 </div>
               </div>
               <div className="root-progress"><div className="progress-copy"><span>{t.solved}</span><strong>{Math.round(progress)}%</strong></div><div className="progress-track"><span style={{ width: `${progress}%` }} /></div></div>
