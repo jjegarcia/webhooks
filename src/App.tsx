@@ -169,6 +169,7 @@ function App() {
   const completedCount = usedHooks.length
   const roundComplete = completedCount === totalHooks
   const isTimed = timedModes.includes(mode)
+  const hintsAvailable = mode !== 'ninja' && mode !== 'battle'
   const wordCount = trail.length + 1
   const progress = (completedCount / totalHooks) * 100
 
@@ -416,16 +417,18 @@ function App() {
               <div className="keyboard-section">
                 <div className="keyboard-heading">
                   <div><strong>{t.keyboard}</strong><span>{t.keyboardHint}</span></div>
-                  <button className="hints-toggle" type="button" aria-pressed={hintsEnabled} onClick={() => setHintsEnabled((value) => !value)}>
-                    {t.hookHints}: {hintsEnabled ? t.hintsOn : t.hintsOff}
-                  </button>
+                  {hintsAvailable && (
+                    <button className="hints-toggle" type="button" aria-pressed={hintsEnabled} onClick={() => setHintsEnabled((value) => !value)}>
+                      {t.hookHints}: {hintsEnabled ? t.hintsOn : t.hintsOff}
+                    </button>
+                  )}
                 </div>
                 <div className="letter-grid">
                   {alphabet.map((letter) => {
-                    const marker = hintsEnabled ? keyboardMarkers.get(letter) : undefined
+                    const marker = hintsAvailable && hintsEnabled ? keyboardMarkers.get(letter) : undefined
                     const correct = usedHooks.includes(`${side}:${letter}`)
                     const wrong = wrongGuesses.includes(`${side}:${letter}`)
-                    const used = hintsEnabled && correct
+                    const used = hintsAvailable && hintsEnabled && correct
                     return (
                       <button
                         key={letter}
@@ -441,7 +444,7 @@ function App() {
                   })}
                 </div>
                 <div className="keyboard-footer">
-                  {hintsEnabled && <>
+                  {hintsAvailable && hintsEnabled && <>
                     <span><i className="legend-dot green" />{language === 'EN' ? 'Available' : 'Disponible'}</span>
                     <span><i className="legend-dot grey" />{language === 'EN' ? 'Not a hook' : 'No es un gancho'}</span>
                   </>}
@@ -456,7 +459,7 @@ function App() {
           </section>
 
           <aside className="sidebar">
-            <section className="side-card hooks-card">
+            {hintsAvailable && <section className="side-card hooks-card">
               <div className="side-card-title"><div><span className="section-kicker">{t.available}</span><h2>{language === 'EN' ? 'The hook board' : 'Tablero de ganchos'}</h2></div><span className="hook-count">{completedCount}<span>/{totalHooks}</span></span></div>
               <p className="side-description">{language === 'EN' ? 'Every letter is a new way to grow your word.' : 'Cada letra es una nueva forma de ampliar tu palabra.'}</p>
               <div className="hook-list">
@@ -478,7 +481,7 @@ function App() {
                 </div>
               </div>
               <div className="root-progress"><div className="progress-copy"><span>{t.solved}</span><strong>{Math.round(progress)}%</strong></div><div className="progress-track"><span style={{ width: `${progress}%` }} /></div></div>
-            </section>
+            </section>}
 
             <section className="side-card root-card">
               <div className="side-card-title"><div><span className="section-kicker">{t.roots} ({roots.length})</span><h2>{language === 'EN' ? 'Pick a new starting point' : 'Elige un nuevo comienzo'}</h2></div></div>
@@ -488,10 +491,10 @@ function App() {
               <div className="root-card-footer"><span className="round-leaf"><Icon name="leaf" /></span><span>{language === 'EN' ? 'A new root, a new possibility.' : 'Una raíz nueva, una posibilidad nueva.'}</span></div>
             </section>
 
-            <section className="tip-card">
+            {hintsAvailable && <section className="tip-card">
               <div className="tip-graphic"><span>✦</span><i /><b /></div>
               <div className="tip-content"><span className="section-kicker">{t.hint}</span><strong>{language === 'EN' ? 'Look both ways.' : 'Mira a ambos lados.'}</strong><p>{language === 'EN' ? 'Some roots open up on the left. Others have a surprise waiting on the right.' : 'Algunas raíces se amplían a la izquierda. Otras esconden una sorpresa a la derecha.'}</p></div>
-            </section>
+            </section>}
           </aside>
         </div>
         <footer className="page-footer"><span>HOOKS<span className="footer-dot">.</span></span><span>{language === 'EN' ? 'Made for curious minds.' : 'Hecho para mentes curiosas.'}</span><span className="footer-right"><Icon name="leaf" />{t.localOnly}</span></footer>
