@@ -208,7 +208,9 @@ button:focus-visible, a:focus-visible { outline: 3px solid #85c89f; outline-offs
 .root-chip { position: relative; flex: 0 0 auto; min-width: 43px; padding: 9px 10px; border: 1px solid #e8ede8; border-radius: 8px; background: #f8faf8; color: #6c7b70; cursor: pointer; font: 700 11px 'Manrope', sans-serif; transition: .15s ease; }
 .root-chip:hover { border-color: #b9d7bd; color: #32774a; }
 .root-chip.active { border-color: #cde2d1; background: #eaf5ec; color: #35794b; box-shadow: inset 0 0 0 1px #e4f0e6; }
-.root-chip-dot { position: absolute; top: 4px; right: 4px; width: 4px; height: 4px; border-radius: 50%; background: #63a775; }
+.root-chip-dot { position: absolute; top: 4px; right: 4px; width: 6px; height: 6px; border-radius: 50%; }
+.root-chip-dot.attempted { background: #e6b936; }
+.root-chip-dot.completed { background: #63a775; }
 .root-card-footer { display: flex; align-items: center; gap: 8px; padding-top: 12px; border-top: 1px solid #eff2ef; color: #949d95; font-size: 9px; }
 .round-leaf { display: grid; width: 21px; height: 21px; place-items: center; border-radius: 6px; background: #eff6f0; color: #6b9b72; }
 .round-leaf svg { width: 13px; height: 13px; }

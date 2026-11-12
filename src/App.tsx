@@ -153,6 +153,8 @@ function App() {
   const [mode, setMode] = useState<Mode>('practice')
   const [rootIndex, setRootIndex] = useState(0)
   const [rootSize, setRootSize] = useState<RootSize>(2)
+  const [attemptedRoots, setAttemptedRoots] = useState<string[]>([])
+  const [completedRoots, setCompletedRoots] = useState<string[]>([])
   const [side, setSide] = useState<Side>('left')
   const [hintsEnabled, setHintsEnabled] = useState(false)
   const [usedHooks, setUsedHooks] = useState<string[]>([])
@@ -238,6 +240,7 @@ function App() {
       setMessage(t.repeated)
       return
     }
+    setAttemptedRoots((value) => value.includes(currentRoot.value) ? value : [...value, currentRoot.value])
     if (!possibleLetters.includes(letter)) {
       setWrongGuesses((value) => value.includes(key) ? value : [...value, key])
       setMessage(t.incorrect)
@@ -261,6 +264,7 @@ function App() {
     const sideDone = possibleLetters.every((item) => nextUsed.includes(`${side}:${item}`))
     const allDone = nextUsed.length === totalHooks
     if (allDone) {
+      setCompletedRoots((value) => value.includes(currentRoot.value) ? value : [...value, currentRoot.value])
       setMessage(t.completed)
       setPlaying(false)
     } else if (sideDone && side === 'left') {
@@ -514,7 +518,16 @@ function App() {
                 </div>
               </div>
               <div className="root-picker">
-                {sizedRoots.map(({ root, index }) => <button key={root.value} className={`root-chip ${rootIndex === index ? 'active' : ''}`} onClick={() => resetRound(index)} aria-pressed={rootIndex === index}>{root.value}{rootIndex === index && <span className="root-chip-dot" />}</button>)}
+                {sizedRoots.map(({ root, index }) => {
+                  const completed = completedRoots.includes(root.value)
+                  const attempted = attemptedRoots.includes(root.value)
+                  return (
+                    <button key={root.value} className={`root-chip ${rootIndex === index ? 'active' : ''}`} onClick={() => resetRound(index)} aria-pressed={rootIndex === index}>
+                      {root.value}
+                      {attempted && <span className={`root-chip-dot ${completed ? 'completed' : 'attempted'}`} aria-label={completed ? 'All hooks discovered' : 'Attempted'} />}
+                    </button>
+                  )
+                })}
               </div>
               <div className="root-card-footer"><span className="round-leaf"><Icon name="leaf" /></span><span>{language === 'EN' ? 'A new root, a new possibility.' : 'Una raíz nueva, una posibilidad nueva.'}</span></div>
             </section>
