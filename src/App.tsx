@@ -150,7 +150,7 @@ function App() {
   const [mode, setMode] = useState<Mode>('practice')
   const [rootIndex, setRootIndex] = useState(0)
   const [side, setSide] = useState<Side>('left')
-  const [hintsEnabled, setHintsEnabled] = useState(true)
+  const [hintsEnabled, setHintsEnabled] = useState(false)
   const [usedHooks, setUsedHooks] = useState<string[]>([])
   const [wrongGuesses, setWrongGuesses] = useState<string[]>([])
   const [trail, setTrail] = useState<string[]>([])
