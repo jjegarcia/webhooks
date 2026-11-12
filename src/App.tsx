@@ -5,6 +5,7 @@ import { roots } from './roots'
 type Side = 'left' | 'right'
 type Mode = 'practice' | 'game' | 'ninja' | 'battle'
 type Language = 'EN' | 'ES'
+type RootSize = 2 | 3 | 4
 
 const copy = {
   EN: {
@@ -37,6 +38,7 @@ const copy = {
     leftHooks: 'BEFORE',
     rightHooks: 'AFTER',
     roots: 'Choose a root',
+    rootLength: 'Root length',
     newRound: 'New round',
     switchSide: 'Switch side',
     nextRoot: 'Next root',
@@ -94,6 +96,7 @@ const copy = {
     leftHooks: 'ANTES',
     rightHooks: 'DESPUÉS',
     roots: 'Elige una raíz',
+    rootLength: 'Longitud de la raíz',
     newRound: 'Nueva ronda',
     switchSide: 'Cambiar lado',
     nextRoot: 'Siguiente raíz',
@@ -149,6 +152,7 @@ function App() {
   const [language, setLanguage] = useState<Language>('EN')
   const [mode, setMode] = useState<Mode>('practice')
   const [rootIndex, setRootIndex] = useState(0)
+  const [rootSize, setRootSize] = useState<RootSize>(2)
   const [side, setSide] = useState<Side>('left')
   const [hintsEnabled, setHintsEnabled] = useState(false)
   const [usedHooks, setUsedHooks] = useState<string[]>([])
@@ -164,6 +168,9 @@ function App() {
   const [modal, setModal] = useState<'help' | 'rooms' | null>(null)
 
   const t = copy[language]
+  const sizedRoots = roots
+    .map((root, index) => ({ root, index }))
+    .filter(({ root }) => root.value.length === rootSize)
   const currentRoot = roots[rootIndex]
   const totalHooks = currentRoot.left.length + currentRoot.right.length
   const completedCount = usedHooks.length
@@ -214,6 +221,13 @@ function App() {
     setPlaying(!isTimed)
     setMessage(t.welcome)
     setStreak(0)
+  }
+
+  const selectRootSize = (size: RootSize) => {
+    const firstRootIndex = roots.findIndex((root) => root.value.length === size)
+    if (firstRootIndex === -1) return
+    setRootSize(size)
+    resetRound(firstRootIndex)
   }
 
   const submitLetter = (letter: string) => {
@@ -410,7 +424,11 @@ function App() {
                 <div className={`feedback-line ${message === t.incorrect || message === t.repeated ? 'feedback-warn' : ''} ${message === t.completed ? 'feedback-success' : ''}`} aria-live="polite">
                   <span className="feedback-mark">{message === t.incorrect || message === t.repeated ? '!' : message === t.completed ? '✓' : '✦'}</span>
                   <span>{message || t.welcome}</span>
-                  {roundComplete && <button className="next-root-button" onClick={() => resetRound((rootIndex + 1) % roots.length)}>{t.nextRoot}<Icon name="arrow" /></button>}
+                  {roundComplete && <button className="next-root-button" onClick={() => {
+                    const currentSizeIndex = sizedRoots.findIndex(({ index }) => index === rootIndex)
+                    const nextRoot = sizedRoots[(currentSizeIndex + 1) % sizedRoots.length]
+                    if (nextRoot) resetRound(nextRoot.index)
+                  }}>{t.nextRoot}<Icon name="arrow" /></button>}
                 </div>
               </div>
 
@@ -484,9 +502,19 @@ function App() {
             </section>}
 
             <section className="side-card root-card">
-              <div className="side-card-title"><div><span className="section-kicker">{t.roots} ({roots.length})</span><h2>{language === 'EN' ? 'Pick a new starting point' : 'Elige un nuevo comienzo'}</h2></div></div>
+              <div className="side-card-title"><div><span className="section-kicker">{t.roots} ({sizedRoots.length})</span><h2>{language === 'EN' ? 'Pick a new starting point' : 'Elige un nuevo comienzo'}</h2></div></div>
+              <div className="root-size-control">
+                <span className="section-kicker">{t.rootLength}</span>
+                <div className="root-size-options" role="group" aria-label={t.rootLength}>
+                  {([2, 3, 4] as const).map((size) => (
+                    <button key={size} className={`root-size-option ${rootSize === size ? 'active' : ''}`} type="button" onClick={() => selectRootSize(size)} aria-pressed={rootSize === size}>
+                      {size} {language === 'EN' ? 'letters' : 'letras'}
+                    </button>
+                  ))}
+                </div>
+              </div>
               <div className="root-picker">
-                {roots.map((root, index) => <button key={root.value} className={`root-chip ${rootIndex === index ? 'active' : ''}`} onClick={() => resetRound(index)} aria-pressed={rootIndex === index}>{root.value}{rootIndex === index && <span className="root-chip-dot" />}</button>)}
+                {sizedRoots.map(({ root, index }) => <button key={root.value} className={`root-chip ${rootIndex === index ? 'active' : ''}`} onClick={() => resetRound(index)} aria-pressed={rootIndex === index}>{root.value}{rootIndex === index && <span className="root-chip-dot" />}</button>)}
               </div>
               <div className="root-card-footer"><span className="round-leaf"><Icon name="leaf" /></span><span>{language === 'EN' ? 'A new root, a new possibility.' : 'Una raíz nueva, una posibilidad nueva.'}</span></div>
             </section>
