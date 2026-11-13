@@ -3,7 +3,7 @@ import hooksLogo from '../app/src/main/res/drawable/hooks_logo.png'
 import { roots } from './roots'
 
 type Side = 'left' | 'right'
-type Mode = 'practice' | 'game' | 'ninja' | 'battle'
+type Mode = 'practice' | 'ninja' | 'battle'
 type Language = 'EN' | 'ES'
 type RootSize = 2 | 3 | 4
 
@@ -13,7 +13,6 @@ const copy = {
     rooms: 'Rooms',
     howToPlay: 'How to play',
     practice: 'Practice',
-    game: 'Game',
     ninja: 'Ninja',
     battle: 'Battle',
     practiceTitle: 'A little wordplay goes a long way.',
@@ -71,7 +70,6 @@ const copy = {
     rooms: 'Salas',
     howToPlay: 'Cómo jugar',
     practice: 'Práctica',
-    game: 'Juego',
     ninja: 'Ninja',
     battle: 'Batalla',
     practiceTitle: 'Una letra puede llevarte muy lejos.',
@@ -130,7 +128,6 @@ const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('')
 const timedModes: Mode[] = ['ninja', 'battle']
 const modeIcons: Record<Mode, string> = {
   practice: '✳',
-  game: '▰',
   ninja: '◈',
   battle: '⚔',
 }
@@ -339,7 +336,7 @@ function App() {
 
         <div className="mode-row">
           <div className="mode-switch" role="group" aria-label="Game mode">
-            {(['practice', 'game', 'ninja', 'battle'] as Mode[]).map((item) => (
+            {(['practice', 'ninja', 'battle'] as Mode[]).map((item) => (
               <button key={item} className={`mode-option ${mode === item ? 'selected' : ''}`} onClick={() => selectMode(item)} aria-pressed={mode === item}>
                 <span className={`mode-symbol ${item}`}>{modeIcons[item]}</span>{t[item]}
               </button>
