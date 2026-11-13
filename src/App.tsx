@@ -1,9 +1,9 @@
-import { useEffect, useMemo, useState } from 'react'
+import { Fragment, useEffect, useMemo, useRef, useState } from 'react'
 import hooksLogo from '../app/src/main/res/drawable/hooks_logo.png'
 import { roots } from './roots'
 
 type Side = 'left' | 'right'
-type Mode = 'practice' | 'game' | 'ninja' | 'battle'
+type Mode = 'practice' | 'ninja' | 'battle'
 type Language = 'EN' | 'ES'
 type RootSize = 2 | 3 | 4
 
@@ -13,7 +13,6 @@ const copy = {
     rooms: 'Rooms',
     howToPlay: 'How to play',
     practice: 'Practice',
-    game: 'Game',
     ninja: 'Ninja',
     battle: 'Battle',
     practiceTitle: 'A little wordplay goes a long way.',
@@ -39,6 +38,7 @@ const copy = {
     rightHooks: 'AFTER',
     roots: 'Choose a root',
     rootLength: 'Root length',
+    rootIndex: 'Jump to roots by first letter',
     newRound: 'New round',
     switchSide: 'Switch side',
     nextRoot: 'Next root',
@@ -71,7 +71,6 @@ const copy = {
     rooms: 'Salas',
     howToPlay: 'Cómo jugar',
     practice: 'Práctica',
-    game: 'Juego',
     ninja: 'Ninja',
     battle: 'Batalla',
     practiceTitle: 'Una letra puede llevarte muy lejos.',
@@ -97,6 +96,7 @@ const copy = {
     rightHooks: 'DESPUÉS',
     roots: 'Elige una raíz',
     rootLength: 'Longitud de la raíz',
+    rootIndex: 'Ir a raíces por letra inicial',
     newRound: 'Nueva ronda',
     switchSide: 'Cambiar lado',
     nextRoot: 'Siguiente raíz',
@@ -130,7 +130,6 @@ const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('')
 const timedModes: Mode[] = ['ninja', 'battle']
 const modeIcons: Record<Mode, string> = {
   practice: '✳',
-  game: '▰',
   ninja: '◈',
   battle: '⚔',
 }
@@ -168,11 +167,18 @@ function App() {
   const [playing, setPlaying] = useState(true)
   const [seconds, setSeconds] = useState(40)
   const [modal, setModal] = useState<'help' | 'rooms' | null>(null)
+  const rootPickerRef = useRef<HTMLDivElement>(null)
 
   const t = copy[language]
-  const sizedRoots = roots
+  const sizedRoots = useMemo(() => roots
     .map((root, index) => ({ root, index }))
-    .filter(({ root }) => root.value.length === rootSize)
+    .filter(({ root }) => root.value.length === rootSize), [rootSize])
+  const rootGroups = useMemo(() => alphabet.map((letter) => ({
+    letter,
+    entries: sizedRoots
+      .filter(({ root }) => root.value.startsWith(letter))
+      .sort((a, b) => a.root.value.localeCompare(b.root.value)),
+  })).filter(({ entries }) => entries.length > 0), [sizedRoots])
   const currentRoot = roots[rootIndex]
   const totalHooks = currentRoot.left.length + currentRoot.right.length
   const completedCount = usedHooks.length
@@ -230,6 +236,15 @@ function App() {
     if (firstRootIndex === -1) return
     setRootSize(size)
     resetRound(firstRootIndex)
+  }
+
+  const scrollToRootLetter = (letter: string) => {
+    const picker = rootPickerRef.current
+    const heading = picker?.querySelector<HTMLElement>(`[data-root-letter="${letter}"]`)
+    if (picker && heading) {
+      heading.focus({ preventScroll: true })
+      picker.scrollTo({ top: heading.offsetTop })
+    }
   }
 
   const submitLetter = (letter: string) => {
@@ -339,7 +354,7 @@ function App() {
 
         <div className="mode-row">
           <div className="mode-switch" role="group" aria-label="Game mode">
-            {(['practice', 'game', 'ninja', 'battle'] as Mode[]).map((item) => (
+            {(['practice', 'ninja', 'battle'] as Mode[]).map((item) => (
               <button key={item} className={`mode-option ${mode === item ? 'selected' : ''}`} onClick={() => selectMode(item)} aria-pressed={mode === item}>
                 <span className={`mode-symbol ${item}`}>{modeIcons[item]}</span>{t[item]}
               </button>
@@ -517,17 +532,27 @@ function App() {
                   ))}
                 </div>
               </div>
-              <div className="root-picker">
-                {sizedRoots.map(({ root, index }) => {
-                  const completed = completedRoots.includes(root.value)
-                  const attempted = attemptedRoots.includes(root.value)
-                  return (
-                    <button key={root.value} className={`root-chip ${rootIndex === index ? 'active' : ''}`} onClick={() => resetRound(index)} aria-pressed={rootIndex === index}>
-                      {root.value}
-                      {attempted && <span className={`root-chip-dot ${completed ? 'completed' : 'attempted'}`} aria-label={completed ? 'All hooks discovered' : 'Attempted'} />}
-                    </button>
-                  )
-                })}
+              <nav className="root-index" aria-label={t.rootIndex}>
+                {rootGroups.map(({ letter }) => (
+                  <button key={letter} type="button" onClick={() => scrollToRootLetter(letter)} aria-label={`${t.rootIndex}: ${letter}`}>{letter}</button>
+                ))}
+              </nav>
+              <div className="root-picker" ref={rootPickerRef} key={rootSize}>
+                {rootGroups.map(({ letter, entries }) => (
+                  <Fragment key={letter}>
+                    <div className="root-group-heading" data-root-letter={letter} tabIndex={-1}>{letter}</div>
+                    {entries.map(({ root, index }) => {
+                      const completed = completedRoots.includes(root.value)
+                      const attempted = attemptedRoots.includes(root.value)
+                      return (
+                        <button key={root.value} className={`root-chip ${rootIndex === index ? 'active' : ''}`} onClick={() => resetRound(index)} aria-pressed={rootIndex === index}>
+                          {root.value}
+                          {attempted && <span className={`root-chip-dot ${completed ? 'completed' : 'attempted'}`} aria-label={completed ? 'All hooks discovered' : 'Attempted'} />}
+                        </button>
+                      )
+                    })}
+                  </Fragment>
+                ))}
               </div>
               <div className="root-card-footer"><span className="round-leaf"><Icon name="leaf" /></span><span>{language === 'EN' ? 'A new root, a new possibility.' : 'Una raíz nueva, una posibilidad nueva.'}</span></div>
             </section>

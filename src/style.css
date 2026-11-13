@@ -201,7 +201,11 @@ button:focus-visible, a:focus-visible { outline: 3px solid #85c89f; outline-offs
 .root-size-option:hover { border-color: #b9d7bd; color: #32774a; }
 .root-size-option.active { border-color: #cde2d1; background: #eaf5ec; color: #35794b; }
 .root-size-option:focus-visible { outline: 2px solid #3b8051; outline-offset: 2px; }
-.root-picker { display: flex; flex-direction: column; gap: 7px; max-height: min(55vh, 320px); margin: 16px 0; padding: 2px; overflow-y: auto; overscroll-behavior: contain; scrollbar-color: #b9d7bd #f2f5f2; scrollbar-width: auto; }
+.root-index { display: flex; flex-wrap: wrap; gap: 3px; margin-top: 12px; }
+.root-index button { min-width: 24px; min-height: 24px; padding: 0 3px; border: 1px solid #e8ede8; border-radius: 5px; background: #f8faf8; color: #5b6b5f; cursor: pointer; font: 700 10px 'Manrope', sans-serif; }
+.root-index button:hover { border-color: #b9d7bd; color: #32774a; }
+.root-picker { position: relative; display: flex; flex-direction: column; gap: 7px; max-height: min(55vh, 320px); margin: 12px 0 16px; padding: 2px; overflow-y: auto; overscroll-behavior: contain; scrollbar-color: #b9d7bd #f2f5f2; scrollbar-width: auto; }
+.root-group-heading { flex: 0 0 auto; padding: 3px 4px; color: #5b6b5f; font-size: 10px; font-weight: 700; }
 .root-picker::-webkit-scrollbar { width: 8px; }
 .root-picker::-webkit-scrollbar-track { border-radius: 8px; background: #f2f5f2; }
 .root-picker::-webkit-scrollbar-thumb { border: 2px solid #f2f5f2; border-radius: 8px; background: #b9d7bd; }
