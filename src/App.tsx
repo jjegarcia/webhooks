@@ -42,8 +42,8 @@ const copy = {
     newRound: 'New round',
     switchSide: 'Switch side',
     nextRoot: 'Next root',
-    pause: 'Pause',
-    resume: 'Resume',
+    stop: 'Stop round',
+    stopped: 'Round finished.',
     start: 'Start round',
     rootHint: 'A fresh root is waiting',
     trail: 'Your word trail',
@@ -100,8 +100,8 @@ const copy = {
     newRound: 'Nueva ronda',
     switchSide: 'Cambiar lado',
     nextRoot: 'Siguiente raíz',
-    pause: 'Pausar',
-    resume: 'Continuar',
+    stop: 'Terminar ronda',
+    stopped: 'Ronda terminada.',
     start: 'Empezar ronda',
     rootHint: 'Una nueva raíz te espera',
     trail: 'Tu camino de palabras',
@@ -324,6 +324,12 @@ function App() {
     setMessage('')
   }
 
+  const handleStop = () => {
+    setPlaying(false)
+    setSeconds(0)
+    setMessage(t.stopped)
+  }
+
   const rootHint = currentRoot.hint
 
   return (
@@ -405,7 +411,7 @@ function App() {
                   ) : (
                     <button className="subtle-button" onClick={() => resetRound()}><Icon name="refresh" />{t.newRound}</button>
                   )}
-                  {isTimed && playing && <button className="pause-button" onClick={() => setPlaying(false)} aria-label={t.pause}>Ⅱ</button>}
+                  {isTimed && playing && <button className="stop-button" onClick={handleStop} aria-label={t.stop} title={t.stop}><span className="stop-icon" aria-hidden="true" /></button>}
                 </div>
               </div>
 
