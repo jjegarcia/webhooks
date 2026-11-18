@@ -33,11 +33,6 @@ const copy = {
     hiddenHook: 'Undiscovered hook',
     correctGuess: 'Correct guess',
     wrongGuess: 'Incorrect guess',
-    submittedGuess: 'Submitted guess',
-    resultsPending: 'Results will be revealed at the end of the round.',
-    correctAnswers: 'Correct answers',
-    foundAnswer: 'Found',
-    missedAnswer: 'Missed',
     available: 'Available hooks',
     leftHooks: 'BEFORE',
     rightHooks: 'AFTER',
@@ -96,11 +91,6 @@ const copy = {
     hiddenHook: 'Gancho sin descubrir',
     correctGuess: 'Acierto',
     wrongGuess: 'Error',
-    submittedGuess: 'Intento enviado',
-    resultsPending: 'Los resultados se mostrarán al finalizar la ronda.',
-    correctAnswers: 'Respuestas correctas',
-    foundAnswer: 'Encontrada',
-    missedAnswer: 'Sin encontrar',
     available: 'Ganchos disponibles',
     leftHooks: 'ANTES',
     rightHooks: 'DESPUÉS',
@@ -175,6 +165,7 @@ function App() {
   const [misses, setMisses] = useState(0)
   const [message, setMessage] = useState('')
   const [playing, setPlaying] = useState(true)
+  const [roundStarted, setRoundStarted] = useState(false)
   const [seconds, setSeconds] = useState(40)
   const [modal, setModal] = useState<'help' | 'rooms' | null>(null)
   const rootPickerRef = useRef<HTMLDivElement>(null)
@@ -194,9 +185,7 @@ function App() {
   const completedCount = usedHooks.length
   const roundComplete = completedCount === totalHooks
   const isTimed = timedModes.includes(mode)
-  const resultsHidden = isTimed && seconds > 0 && !roundComplete
-  const revealAnswers = isTimed && !resultsHidden
-  const feedback = resultsHidden ? (usedHooks.length + wrongGuesses.length > 0 ? t.resultsPending : t.welcome) : message || t.welcome
+  const rootSelectionLocked = isTimed && roundStarted && seconds > 0 && !roundComplete
   const hintsAvailable = mode !== 'ninja' && mode !== 'battle'
   const wordCount = trail.length + 1
   const progress = (completedCount / totalHooks) * 100
@@ -226,18 +215,15 @@ function App() {
   }, [isTimed, playing, seconds, t.timeUp])
 
   const selectMode = (nextMode: Mode) => {
+    setRoundStarted(false)
     setMode(nextMode)
-    setUsedHooks([])
-    setWrongGuesses([])
-    setTrail([])
-    setSide('left')
-    setStreak(0)
     setSeconds(40)
     setPlaying(!timedModes.includes(nextMode))
     setMessage('')
   }
 
   const resetRound = (nextRootIndex = rootIndex) => {
+    setRoundStarted(false)
     setRootIndex(nextRootIndex)
     setUsedHooks([])
     setWrongGuesses([])
@@ -300,7 +286,7 @@ function App() {
       setCompletedRoots((value) => value.includes(currentRoot.value) ? value : [...value, currentRoot.value])
       setMessage(t.completed)
       setPlaying(false)
-    } else if (!isTimed && sideDone && side === 'left') {
+    } else if (sideDone && side === 'left') {
       setSide('right')
       setMessage(language === 'EN' ? 'Left side complete — now hook the other side.' : 'Lado izquierdo completo. ¡Vamos al otro!')
     } else {
@@ -316,7 +302,7 @@ function App() {
         return
       }
       if (/^[a-z]$/i.test(event.key)) submitLetter(event.key.toUpperCase())
-      if (event.key === 'Backspace' && trail.length > 0 && !isTimed) {
+      if (event.key === 'Backspace' && trail.length > 0) {
         event.preventDefault()
         const lastHook = usedHooks.at(-1)!
         const lastSide = lastHook.startsWith('right:') ? 'right' : 'left'
@@ -333,6 +319,7 @@ function App() {
 
   const handleStart = () => {
     if (seconds === 0 || roundComplete) resetRound()
+    setRoundStarted(true)
     setPlaying(true)
     setMessage('')
   }
@@ -386,18 +373,18 @@ function App() {
             <div className="stats-row">
               <div className="stat-card score-stat">
                 <span className="stat-label">{t.score}</span>
-                <strong>{resultsHidden ? '—' : score.toLocaleString(language === 'EN' ? 'en-US' : 'es-ES')}</strong>
+                <strong>{score.toLocaleString(language === 'EN' ? 'en-US' : 'es-ES')}</strong>
                 <span className="stat-caption"><span className="stat-trend">↗</span> {language === 'EN' ? 'Keep it going' : '¡Sigue así!'}</span>
               </div>
               <div className="stat-card">
                 <span className="stat-label">{t.streak}</span>
-                <strong>{resultsHidden ? '—' : streak}<span className="stat-unit">×</span></strong>
-                <span className="stat-caption"><span className="streak-icon">✳</span> {language === 'EN' ? `Best ${resultsHidden ? '—' : bestStreak}` : `Mejor ${resultsHidden ? '—' : bestStreak}`}</span>
+                <strong>{streak}<span className="stat-unit">×</span></strong>
+                <span className="stat-caption"><span className="streak-icon">✳</span> {language === 'EN' ? `Best ${bestStreak}` : `Mejor ${bestStreak}`}</span>
               </div>
               <div className="stat-card">
                 <span className="stat-label">{t.words}</span>
-                <strong>{resultsHidden ? '—' : wordCount.toString().padStart(2, '0')}</strong>
-                <span className="stat-caption">{resultsHidden ? '—' : misses} {language === 'EN' ? 'misses' : 'errores'}</span>
+                <strong>{wordCount.toString().padStart(2, '0')}</strong>
+                <span className="stat-caption">{misses} {language === 'EN' ? 'misses' : 'errores'}</span>
               </div>
               <div className={`stat-card timer-stat ${isTimed ? 'timer-on' : ''}`}>
                 <span className="stat-label"><Icon name="clock" />{language === 'EN' ? 'TIME' : 'TIEMPO'}</span>
@@ -422,7 +409,7 @@ function App() {
                 </div>
               </div>
 
-              <div className="progress-track"><span style={{ width: `${resultsHidden ? 0 : progress}%` }} /></div>
+              <div className="progress-track"><span style={{ width: `${progress}%` }} /></div>
 
               <div className="word-zone">
                 <div className="word-zone-label">
@@ -432,7 +419,7 @@ function App() {
                 </div>
 
                 <div className="word-trail" aria-live="polite">
-                  {resultsHidden || trail.length === 0 ? (
+                  {trail.length === 0 ? (
                     <div className="empty-trail">
                       <span className="root-word">{currentRoot.value}</span>
                       <span className="empty-prompt"><span className="sparkle">✦</span>{t.rootHint}</span>
@@ -458,9 +445,9 @@ function App() {
                   )}
                 </div>
 
-                <div className={`feedback-line ${feedback === t.incorrect || feedback === t.repeated ? 'feedback-warn' : ''} ${feedback === t.completed ? 'feedback-success' : ''}`} aria-live="polite">
-                  <span className="feedback-mark">{feedback === t.incorrect || feedback === t.repeated ? '!' : feedback === t.completed ? '✓' : '✦'}</span>
-                  <span>{feedback}</span>
+                <div className={`feedback-line ${message === t.incorrect || message === t.repeated ? 'feedback-warn' : ''} ${message === t.completed ? 'feedback-success' : ''}`} aria-live="polite">
+                  <span className="feedback-mark">{message === t.incorrect || message === t.repeated ? '!' : message === t.completed ? '✓' : '✦'}</span>
+                  <span>{message || t.welcome}</span>
                   {roundComplete && <button className="next-root-button" onClick={() => {
                     const currentSizeIndex = sizedRoots.findIndex(({ index }) => index === rootIndex)
                     const nextRoot = sizedRoots[(currentSizeIndex + 1) % sizedRoots.length]
@@ -482,28 +469,18 @@ function App() {
                   {alphabet.map((letter) => {
                     const marker = hintsAvailable && hintsEnabled ? keyboardMarkers.get(letter) : undefined
                     const correct = usedHooks.includes(`${side}:${letter}`)
+                    const wrong = wrongGuesses.includes(`${side}:${letter}`)
                     const used = hintsAvailable && hintsEnabled && correct
-                    const guesses = (['left', 'right'] as const).flatMap((guessSide) => {
-                      const found = usedHooks.includes(`${guessSide}:${letter}`)
-                      const wrong = wrongGuesses.includes(`${guessSide}:${letter}`)
-                      const unguessed = revealAnswers && !found && currentRoot[guessSide].includes(letter)
-                      if (!found && !wrong && !unguessed) return []
-                      return [{
-                        side: guessSide,
-                        status: resultsHidden ? 'submitted' : found ? 'correct' : unguessed ? 'unguessed' : 'wrong',
-                        label: `${guessSide === 'left' ? t.leftHooks : t.rightHooks}: ${resultsHidden ? t.submittedGuess : found ? t.correctGuess : unguessed ? t.missedAnswer : t.wrongGuess}`,
-                      }]
-                    })
                     return (
                       <button
                         key={letter}
                         className={`letter-key ${marker ? 'key-available' : ''} ${used ? 'key-used' : ''}`}
                         onClick={() => submitLetter(letter)}
                         disabled={!playing || roundComplete}
-                        aria-label={`${letter}${guesses.length > 0 ? `, ${guesses.map((guess) => guess.label).join(', ')}` : marker ? `, ${side === 'left' ? t.leftHooks : t.rightHooks}` : ''}`}
+                        aria-label={`${letter}${correct ? `, ${t.correctGuess}` : wrong ? `, ${t.wrongGuess}` : marker ? `, ${side === 'left' ? t.leftHooks : t.rightHooks}` : ''}`}
                       >
                         {letter}
-                        {guesses.map((guess) => <span key={guess.side} className={`key-dot ${guess.side} ${guess.status}`} aria-hidden="true" />)}
+                        {(correct || wrong) && <span className={`key-dot ${correct ? 'correct' : 'wrong'}`} aria-hidden="true" />}
                       </button>
                     )
                   })}
@@ -513,13 +490,8 @@ function App() {
                     <span><i className="legend-dot green" />{language === 'EN' ? 'Available' : 'Disponible'}</span>
                     <span><i className="legend-dot grey" />{language === 'EN' ? 'Not a hook' : 'No es un gancho'}</span>
                   </>}
-                  {resultsHidden ? (
-                    <span><i className="legend-dot submitted" />{t.submittedGuess}</span>
-                  ) : <>
-                    <span><i className="legend-dot correct" />{t.correctGuess}</span>
-                    <span><i className="legend-dot wrong" />{t.wrongGuess}</span>
-                    {revealAnswers && <span><i className="legend-dot unguessed" />{t.missedAnswer}</span>}
-                  </>}
+                  <span><i className="legend-dot correct" />{t.correctGuess}</span>
+                  <span><i className="legend-dot wrong" />{t.wrongGuess}</span>
                   <button className="switch-side" onClick={() => setSide((value) => value === 'left' ? 'right' : 'left')} disabled={roundComplete}>
                     {t.switchSide}<span>⇄</span>
                   </button>
@@ -529,16 +501,15 @@ function App() {
           </section>
 
           <aside className="sidebar">
-            {(hintsAvailable || revealAnswers) && <section className="side-card hooks-card">
-              <div className="side-card-title"><div><span className="section-kicker">{revealAnswers ? t.correctAnswers : t.available}</span><h2>{language === 'EN' ? 'The hook board' : 'Tablero de ganchos'}</h2></div><span className="hook-count">{completedCount}<span>/{totalHooks}</span></span></div>
+            {hintsAvailable && <section className="side-card hooks-card">
+              <div className="side-card-title"><div><span className="section-kicker">{t.available}</span><h2>{language === 'EN' ? 'The hook board' : 'Tablero de ganchos'}</h2></div><span className="hook-count">{completedCount}<span>/{totalHooks}</span></span></div>
               <p className="side-description">{language === 'EN' ? 'Every letter is a new way to grow your word.' : 'Cada letra es una nueva forma de ampliar tu palabra.'}</p>
               <div className="hook-list">
                 <div className="hook-list-heading"><span className="hook-direction">←</span><strong>{t.leftHooks}</strong><span>{currentRoot.left.length - usedHooks.filter((key) => key.startsWith('left:')).length} {t.remaining}</span></div>
                 <div className="hook-letters">
                   {currentRoot.left.map((letter) => {
                     const found = usedHooks.includes(`left:${letter}`)
-                    const word = `${letter}${currentRoot.value}`
-                    return <span className={`hook-chip ${found ? 'found' : ''}`} key={letter} aria-label={revealAnswers ? `${word}, ${found ? t.foundAnswer : t.missedAnswer}` : !hintsEnabled && !found ? t.hiddenHook : undefined}>{revealAnswers ? word : hintsEnabled || found ? letter : '?'}{found && <Icon name="check" />}{revealAnswers && !found && <span>({t.missedAnswer})</span>}</span>
+                    return <span className={`hook-chip ${found ? 'found' : ''}`} key={letter} aria-label={!hintsEnabled && !found ? t.hiddenHook : undefined}>{hintsEnabled || found ? letter : '?'}{found && <Icon name="check" />}</span>
                   })}
                 </div>
               </div>
@@ -547,15 +518,14 @@ function App() {
                 <div className="hook-letters">
                   {currentRoot.right.map((letter) => {
                     const found = usedHooks.includes(`right:${letter}`)
-                    const word = `${currentRoot.value}${letter}`
-                    return <span className={`hook-chip ${found ? 'found' : ''}`} key={letter} aria-label={revealAnswers ? `${word}, ${found ? t.foundAnswer : t.missedAnswer}` : !hintsEnabled && !found ? t.hiddenHook : undefined}>{revealAnswers ? word : hintsEnabled || found ? letter : '?'}{found && <Icon name="check" />}{revealAnswers && !found && <span>({t.missedAnswer})</span>}</span>
+                    return <span className={`hook-chip ${found ? 'found' : ''}`} key={letter} aria-label={!hintsEnabled && !found ? t.hiddenHook : undefined}>{hintsEnabled || found ? letter : '?'}{found && <Icon name="check" />}</span>
                   })}
                 </div>
               </div>
               <div className="root-progress"><div className="progress-copy"><span>{t.solved}</span><strong>{Math.round(progress)}%</strong></div><div className="progress-track"><span style={{ width: `${progress}%` }} /></div></div>
             </section>}
 
-            <section className="side-card root-card">
+            {!rootSelectionLocked && <section className="side-card root-card">
               <div className="side-card-title"><div><span className="section-kicker">{t.roots} ({sizedRoots.length})</span><h2>{language === 'EN' ? 'Pick a new starting point' : 'Elige un nuevo comienzo'}</h2></div></div>
               <div className="root-size-control">
                 <span className="section-kicker">{t.rootLength}</span>
@@ -579,11 +549,10 @@ function App() {
                     {entries.map(({ root, index }) => {
                       const completed = completedRoots.includes(root.value)
                       const attempted = attemptedRoots.includes(root.value)
-                      const pending = resultsHidden && rootIndex === index && usedHooks.length + wrongGuesses.length > 0
                       return (
                         <button key={root.value} className={`root-chip ${rootIndex === index ? 'active' : ''}`} onClick={() => resetRound(index)} aria-pressed={rootIndex === index}>
                           {root.value}
-                          {attempted && <span className={`root-chip-dot ${pending ? 'submitted' : completed ? 'completed' : 'attempted'}`} aria-label={pending ? t.submittedGuess : completed ? 'All hooks discovered' : 'Attempted'} />}
+                          {attempted && <span className={`root-chip-dot ${completed ? 'completed' : 'attempted'}`} aria-label={completed ? 'All hooks discovered' : 'Attempted'} />}
                         </button>
                       )
                     })}
@@ -591,7 +560,7 @@ function App() {
                 ))}
               </div>
               <div className="root-card-footer"><span className="round-leaf"><Icon name="leaf" /></span><span>{language === 'EN' ? 'A new root, a new possibility.' : 'Una raíz nueva, una posibilidad nueva.'}</span></div>
-            </section>
+            </section>}
 
             {hintsAvailable && <section className="tip-card">
               <div className="tip-graphic"><span>✦</span><i /><b /></div>
