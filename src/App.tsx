@@ -165,6 +165,7 @@ function App() {
   const [misses, setMisses] = useState(0)
   const [message, setMessage] = useState('')
   const [playing, setPlaying] = useState(true)
+  const [roundStarted, setRoundStarted] = useState(false)
   const [seconds, setSeconds] = useState(40)
   const [modal, setModal] = useState<'help' | 'rooms' | null>(null)
   const rootPickerRef = useRef<HTMLDivElement>(null)
@@ -184,6 +185,7 @@ function App() {
   const completedCount = usedHooks.length
   const roundComplete = completedCount === totalHooks
   const isTimed = timedModes.includes(mode)
+  const rootSelectionLocked = isTimed && roundStarted && seconds > 0 && !roundComplete
   const hintsAvailable = mode !== 'ninja' && mode !== 'battle'
   const wordCount = trail.length + 1
   const progress = (completedCount / totalHooks) * 100
@@ -213,6 +215,7 @@ function App() {
   }, [isTimed, playing, seconds, t.timeUp])
 
   const selectMode = (nextMode: Mode) => {
+    setRoundStarted(false)
     setMode(nextMode)
     setSeconds(40)
     setPlaying(!timedModes.includes(nextMode))
@@ -220,6 +223,7 @@ function App() {
   }
 
   const resetRound = (nextRootIndex = rootIndex) => {
+    setRoundStarted(false)
     setRootIndex(nextRootIndex)
     setUsedHooks([])
     setWrongGuesses([])
@@ -315,6 +319,7 @@ function App() {
 
   const handleStart = () => {
     if (seconds === 0 || roundComplete) resetRound()
+    setRoundStarted(true)
     setPlaying(true)
     setMessage('')
   }
@@ -520,7 +525,7 @@ function App() {
               <div className="root-progress"><div className="progress-copy"><span>{t.solved}</span><strong>{Math.round(progress)}%</strong></div><div className="progress-track"><span style={{ width: `${progress}%` }} /></div></div>
             </section>}
 
-            <section className="side-card root-card">
+            {!rootSelectionLocked && <section className="side-card root-card">
               <div className="side-card-title"><div><span className="section-kicker">{t.roots} ({sizedRoots.length})</span><h2>{language === 'EN' ? 'Pick a new starting point' : 'Elige un nuevo comienzo'}</h2></div></div>
               <div className="root-size-control">
                 <span className="section-kicker">{t.rootLength}</span>
@@ -555,7 +560,7 @@ function App() {
                 ))}
               </div>
               <div className="root-card-footer"><span className="round-leaf"><Icon name="leaf" /></span><span>{language === 'EN' ? 'A new root, a new possibility.' : 'Una raíz nueva, una posibilidad nueva.'}</span></div>
-            </section>
+            </section>}
 
             {hintsAvailable && <section className="tip-card">
               <div className="tip-graphic"><span>✦</span><i /><b /></div>
