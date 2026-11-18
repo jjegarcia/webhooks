@@ -1,5 +1,7 @@
 App: https://jjegarcia.github.io/webhooks/
 
+
+
 Practice gives immediate feedback. Ninja and Battle show blue dots for submitted
 guesses and reveal results when time runs out, all hooks are found, or Stop round is pressed.
 At the end, the hook board lists every correct word, marking found and missed answers.
