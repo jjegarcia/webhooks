@@ -160,9 +160,13 @@ button:focus-visible, a:focus-visible { outline: 3px solid #85c89f; outline-offs
 .letter-key.key-available { border-color: #cfe5d2; background: #eef7ef; color: #3b8051; }
 .letter-key.key-used { border-color: #e4eae4; background: #f2f5f2; color: #adb6ae; }
 .letter-key:disabled { cursor: not-allowed; opacity: .58; }
-.key-dot { position: absolute; right: 4px; bottom: 4px; width: 7px; height: 7px; border-radius: 50%; }
+.key-dot { position: absolute; bottom: 4px; width: 7px; height: 7px; border-radius: 50%; }
+.key-dot.left { left: 4px; }
+.key-dot.right { right: 4px; }
 .key-dot.correct, .legend-dot.correct { background: #278445; }
 .key-dot.wrong, .legend-dot.wrong { background: #cf3e3e; }
+.key-dot.unguessed, .legend-dot.unguessed { background: #808890; }
+.key-dot.submitted, .legend-dot.submitted, .root-chip-dot.submitted { background: #3478ce; }
 .keyboard-footer { display: flex; flex-wrap: wrap; align-items: center; gap: 15px; margin-top: 12px; }
 .keyboard-footer > span { display: flex; align-items: center; gap: 5px; color: #959e97; font-size: 8px; }
 .legend-dot { width: 6px; height: 6px; border-radius: 50%; }
