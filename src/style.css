@@ -130,11 +130,11 @@ button:focus-visible, a:focus-visible { outline: 3px solid #85c89f; outline-offs
 .side-pill-button:focus-visible { outline: 2px solid currentColor; outline-offset: 3px; }
 .word-trail { display: grid; min-height: 112px; place-items: center; margin-top: 12px; padding: 12px; overflow-x: auto; }
 .empty-trail { display: flex; align-items: center; gap: 12px; }
-.root-word { display: grid; width: 70px; height: 70px; place-items: center; border: 1px solid #d5e8d9; border-radius: 15px; background: #eaf5ec; color: #286b42; font: 800 30px 'Manrope', sans-serif; letter-spacing: 2px; box-shadow: 0 5px 12px rgb(63 132 83 / 8%); }
+.root-word { display: grid; min-width: 70px; min-height: 70px; padding: 0 8px; place-items: center; border: 1px solid #d5e8d9; border-radius: 15px; background: #eaf5ec; color: #286b42; font: 800 30px 'Manrope', sans-serif; letter-spacing: 2px; box-shadow: 0 5px 12px rgb(63 132 83 / 8%); }
 .empty-prompt { color: #9aa39c; font-size: 10px; }
 .sparkle { margin-right: 7px; color: #94c29c; }
 .trail-words { display: flex; align-items: center; justify-content: center; min-width: max-content; }
-.trail-root { display: grid; width: 41px; height: 41px; place-items: center; border-radius: 9px; background: #edf6ef; color: #3a7b50; font: 800 16px 'Manrope', sans-serif; letter-spacing: 1px; }
+.trail-root { display: grid; min-width: 41px; height: 41px; padding: 0 6px; place-items: center; border-radius: 9px; background: #edf6ef; color: #3a7b50; font: 800 16px 'Manrope', sans-serif; letter-spacing: 1px; }
 .trail-connector { width: 18px; height: 1px; background: #dce5dd; }
 .trail-connector.short { width: 12px; }
 .trail-entry { display: flex; align-items: center; }
@@ -245,7 +245,6 @@ button:focus-visible, a:focus-visible { outline: 3px solid #85c89f; outline-offs
 .modal-card { position: relative; width: min(100%, 410px); padding: 30px; border: 1px solid #e8ede8; border-radius: 17px; background: #fff; box-shadow: 0 22px 70px rgb(21 44 29 / 18%); }
 .modal-close { position: absolute; top: 15px; right: 16px; width: 30px; height: 30px; border: 0; border-radius: 50%; background: #f2f5f2; color: #718076; cursor: pointer; font-size: 20px; line-height: 1; }
 .modal-icon { display: grid; width: 44px; height: 44px; margin-bottom: 18px; place-items: center; border-radius: 13px; background: #eaf5ec; color: #4c9661; }
-.modal-icon.rooms { background: #edf2f7; color: #65809e; }
 .modal-card h2 { margin: 8px 0 9px; font: 700 22px 'Manrope', sans-serif; letter-spacing: -.8px; }
 .modal-card p { margin: 0; color: #7d8980; font-size: 13px; line-height: 1.7; }
 .primary-button { display: inline-flex; align-items: center; justify-content: center; gap: 9px; padding: 11px 15px; border: 0; border-radius: 8px; background: var(--green); color: white; cursor: pointer; font-size: 11px; font-weight: 700; transition: background .15s ease, transform .15s ease; }
@@ -279,8 +278,6 @@ button:focus-visible, a:focus-visible { outline: 3px solid #85c89f; outline-offs
   .brand-name { font-size: 21px; }
   .brand-name small { display: none; }
   .topbar-actions { gap: 8px; }
-  .room-button { width: 34px; height: 34px; justify-content: center; padding: 0; overflow: hidden; font-size: 0; }
-  .room-button svg { flex: 0 0 auto; }
   .help-button { width: 31px; }
   .topbar-divider { height: 22px; }
   .language-toggle { gap: 4px; font-size: 10px; }
@@ -309,9 +306,9 @@ button:focus-visible, a:focus-visible { outline: 3px solid #85c89f; outline-offs
   .word-zone { padding: 16px 13px 12px; }
   .word-trail { justify-content: start; min-height: 96px; padding: 8px 2px; }
   .empty-trail { margin: auto; }
-  .root-word { width: 61px; height: 61px; font-size: 27px; }
+  .root-word { min-width: 61px; min-height: 61px; font-size: 27px; }
   .empty-prompt { max-width: 115px; line-height: 1.5; }
-  .trail-root { width: 35px; height: 35px; font-size: 14px; }
+  .trail-root { min-width: 35px; height: 35px; font-size: 14px; }
   .trail-connector { width: 10px; }
   .trail-connector.short { width: 7px; }
   .word-tile { gap: 1px; padding: 5px; }

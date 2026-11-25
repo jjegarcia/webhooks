@@ -16,3 +16,6 @@ to prepare the next one and choose its side. A side without hooks cannot be star
 In Practice, use Switch side to guess before or after the root.
 Battle chooses a random side, root length, and playable root for each new round.
 Only the selected side is played and counted; the root picker is hidden.
+Spanish uses the Spanish hook tables and treats CH, LL, Ñ, and RR as single
+tiles. Physical keys 1–4 select them, and Ñ can also be typed directly.
+Switching languages starts a fresh round and clears the current score and progress.

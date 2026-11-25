@@ -2,16 +2,16 @@ import { Fragment, useEffect, useMemo, useRef, useState } from 'react'
 import hooksLogo from '../app/src/main/res/drawable/hooks_logo.png'
 import { randomBattleRoot } from './battleRoot'
 import type { RootSize, Side } from './battleRoot'
+import { displayWord, keyLabel, keyboardKeys, physicalKey } from './keyboard'
+import type { Language } from './keyboard'
 import { getRoundRules } from './roundRules'
 import type { Mode } from './roundRules'
-import { roots } from './roots'
+import { rootsByLanguage } from './roots'
 
-type Language = 'EN' | 'ES'
 
 const copy = {
   EN: {
     tagline: 'Wordplay, one letter at a time.',
-    rooms: 'Rooms',
     howToPlay: 'How to play',
     practice: 'Practice',
     ninja: 'Ninja',
@@ -63,9 +63,6 @@ const copy = {
     timeUp: "Time's up. What a run!",
     howTitle: 'The art of the hook',
     howBody: 'Start with the highlighted root. Add one letter before it or after it to make a word. Find every hook on one side, then keep going on the other.',
-    roomTitle: 'Find your people',
-    roomBody: 'Live rooms let you play Hooks together. Room discovery and sign-in need the original Firebase service, which is not connected to this web preview yet.',
-    roomAction: 'Back to the board',
     timed: '40 second round',
     localOnly: 'Solo preview',
     hint: 'Hint',
@@ -75,7 +72,6 @@ const copy = {
   },
   ES: {
     tagline: 'Juega con palabras, letra a letra.',
-    rooms: 'Salas',
     howToPlay: 'Cómo jugar',
     practice: 'Práctica',
     ninja: 'Ninja',
@@ -127,9 +123,6 @@ const copy = {
     timeUp: 'Se acabó el tiempo. ¡Qué buena ronda!',
     howTitle: 'El arte del gancho',
     howBody: 'Empieza con la raíz resaltada. Añade una letra antes o después para crear una palabra. Encuentra todos los ganchos de un lado y continúa por el otro.',
-    roomTitle: 'Encuentra tu grupo',
-    roomBody: 'Las salas te permiten jugar Hooks en compañía. La búsqueda de salas y el inicio de sesión necesitan el servicio Firebase original, que aún no está conectado a esta vista web.',
-    roomAction: 'Volver al tablero',
     timed: 'Ronda de 40 segundos',
     localOnly: 'Vista individual',
     hint: 'Pista',
@@ -139,7 +132,6 @@ const copy = {
   },
 }
 
-const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('')
 const timedModes: Mode[] = ['ninja', 'battle']
 const modeIcons: Record<Mode, string> = {
   practice: '✳',
@@ -147,13 +139,12 @@ const modeIcons: Record<Mode, string> = {
   battle: '⚔',
 }
 
-function Icon({ name }: { name: 'spark' | 'clock' | 'arrow' | 'help' | 'users' | 'leaf' | 'check' | 'refresh' }) {
+function Icon({ name }: { name: 'spark' | 'clock' | 'arrow' | 'help' | 'leaf' | 'check' | 'refresh' }) {
   const common = { width: 18, height: 18, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: 1.8, strokeLinecap: 'round' as const, strokeLinejoin: 'round' as const, 'aria-hidden': true as const }
 
   if (name === 'clock') return <svg {...common}><circle cx="12" cy="12" r="9" /><path d="M12 7v5l3 2" /></svg>
   if (name === 'arrow') return <svg {...common}><path d="M5 12h14M13 6l6 6-6 6" /></svg>
   if (name === 'help') return <svg {...common}><circle cx="12" cy="12" r="9" /><path d="M9.6 9a2.5 2.5 0 0 1 4.8 1c0 1.8-2.4 2-2.4 4M12 17.5v.1" /></svg>
-  if (name === 'users') return <svg {...common}><path d="M16 20v-1.6a3.4 3.4 0 0 0-3.4-3.4H6.4A3.4 3.4 0 0 0 3 18.4V20M9.5 11a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7ZM17 4.2a3.5 3.5 0 0 1 0 6.7M21 20v-1.6a3.4 3.4 0 0 0-2.5-3.3" /></svg>
   if (name === 'check') return <svg {...common}><path d="m5 12 4 4L19 6" /></svg>
   if (name === 'refresh') return <svg {...common}><path d="M20 7v5h-5M4 17v-5h5" /><path d="M5.5 9A7 7 0 0 1 17 6.5L20 12M4 12l3 5.5A7 7 0 0 0 18.5 15" /></svg>
   if (name === 'leaf') return <svg {...common}><path d="M20 4c-8 0-14 3.8-14 10a6 6 0 0 0 6 6c6.2 0 8-7 8-16Z" /><path d="M4 21c3-5 7-8 12-11" /></svg>
@@ -179,19 +170,21 @@ function App() {
   const [message, setMessage] = useState('')
   const [playing, setPlaying] = useState(true)
   const [seconds, setSeconds] = useState(40)
-  const [modal, setModal] = useState<'help' | 'rooms' | null>(null)
+  const [modal, setModal] = useState<'help' | null>(null)
   const rootPickerRef = useRef<HTMLDivElement>(null)
 
   const t = copy[language]
+  const roots = rootsByLanguage[language]
+  const keys = keyboardKeys(language)
   const sizedRoots = useMemo(() => roots
       .map((root, index) => ({ root, index }))
-      .filter(({ root }) => root.value.length === rootSize), [rootSize])
-  const rootGroups = useMemo(() => alphabet.map((letter) => ({
+      .filter(({ root }) => root.value.length === rootSize), [roots, rootSize])
+  const rootGroups = useMemo(() => keys.map((letter) => ({
     letter,
     entries: sizedRoots
         .filter(({ root }) => root.value.startsWith(letter))
-        .sort((a, b) => a.root.value.localeCompare(b.root.value)),
-  })).filter(({ entries }) => entries.length > 0), [sizedRoots])
+        .sort((a, b) => displayWord(a.root.value).localeCompare(displayWord(b.root.value), language === 'ES' ? 'es' : 'en')),
+  })).filter(({ entries }) => entries.length > 0), [sizedRoots, language])
   const currentRoot = roots[rootIndex]
   const completedCount = usedHooks.length
   const { totalHooks, roundComplete, canSwitchSide, canStart } = getRoundRules(mode, currentRoot, side, playing, seconds, completedCount)
@@ -268,6 +261,27 @@ function App() {
     }
   }
 
+  const changeLanguage = () => {
+    const nextLanguage = language === 'EN' ? 'ES' : 'EN'
+    const nextRoots = rootsByLanguage[nextLanguage]
+    setLanguage(nextLanguage)
+    setAttemptedRoots([])
+    setCompletedRoots([])
+    setScore(0)
+    setBestStreak(0)
+    setMisses(0)
+    if (mode === 'battle') {
+      const nextRoot = randomBattleRoot(nextRoots)
+      setRootSize(nextRoot.size)
+      resetRound(nextRoot.index, nextRoot.side)
+    } else {
+      const nextRootIndex = nextRoots.findIndex((root) => root.value.length === rootSize)
+      if (nextRootIndex === -1) throw new Error(`No ${rootSize}-letter roots for ${nextLanguage}`)
+      resetRound(nextRootIndex)
+    }
+    setMessage('')
+  }
+
   const selectRootSize = (size: RootSize) => {
     const firstRootIndex = roots.findIndex((root) => root.value.length === size)
     if (firstRootIndex === -1) return
@@ -285,7 +299,7 @@ function App() {
   }
 
   const submitLetter = (letter: string) => {
-    if (!alphabet.includes(letter) || !playing || roundComplete) return
+    if (!keys.includes(letter) || !playing || roundComplete) return
     const possibleLetters = side === 'left' ? currentRoot.left : currentRoot.right
     const key = `${side}:${letter}`
     if (usedHooks.includes(key)) {
@@ -336,7 +350,8 @@ function App() {
         setModal(null)
         return
       }
-      if (/^[a-z]$/i.test(event.key)) submitLetter(event.key.toUpperCase())
+      const letter = physicalKey(event.key, language)
+      if (letter) submitLetter(letter)
       if (event.key === 'Backspace' && trail.length > 0 && !isTimed) {
         event.preventDefault()
         const lastHook = usedHooks.at(-1)!
@@ -368,7 +383,7 @@ function App() {
     setMessage(t.stopped)
   }
 
-  const rootHint = currentRoot.hint
+  const rootHint = language === 'EN' ? 'Add a letter before or after this root' : 'Añade una letra antes o después de esta raíz'
 
   return (
       <div className="app-shell">
@@ -378,10 +393,9 @@ function App() {
             <span className="brand-name">hooks<span>.</span><small>{t.tagline}</small></span>
           </a>
           <div className="topbar-actions">
-            <button className="text-button room-button" onClick={() => setModal('rooms')}><Icon name="users" />{t.rooms}</button>
             <button className="icon-button help-button" aria-label={t.howToPlay} onClick={() => setModal('help')}><Icon name="help" /></button>
             <span className="topbar-divider" />
-            <button className="language-toggle" onClick={() => setLanguage((value) => value === 'EN' ? 'ES' : 'EN')} aria-label="Change language">
+            <button className="language-toggle" onClick={changeLanguage} aria-label="Change language">
               <span className="language-globe">◎</span>{language}<span className="chevron">⌄</span>
             </button>
             <span className="avatar" aria-label="Guest player">G</span>
@@ -469,12 +483,12 @@ function App() {
                   <div className="word-trail" aria-live="polite">
                     {resultsHidden || trail.length === 0 ? (
                         <div className="empty-trail">
-                          <span className="root-word">{currentRoot.value}</span>
+                          <span className="root-word">{displayWord(currentRoot.value)}</span>
                           <span className="empty-prompt"><span className="sparkle">✦</span>{t.rootHint}</span>
                         </div>
                     ) : (
                         <div className="trail-words">
-                          <span className="trail-root">{currentRoot.value}</span>
+                          <span className="trail-root">{displayWord(currentRoot.value)}</span>
                           <span className="trail-connector" />
                           {trail.slice(-5).map((word, index) => (
                               <span className="trail-entry" key={`${word}-${index}`}>
@@ -483,7 +497,7 @@ function App() {
                               const isRoot = word.startsWith(currentRoot.value)
                                   ? letterIndex < currentRoot.value.length
                                   : letterIndex >= word.length - currentRoot.value.length
-                              return <span className={isRoot ? 'root-letter' : 'hook-letter'} key={`${letter}-${letterIndex}`}>{letter}</span>
+                              return <span className={isRoot ? 'root-letter' : 'hook-letter'} key={`${letter}-${letterIndex}`}>{keyLabel(letter)}</span>
                             })}
                           </span>
                                 {index < Math.min(trail.length, 5) - 1 && <span className="trail-connector short" />}
@@ -518,7 +532,7 @@ function App() {
                     )}
                   </div>
                   <div className="letter-grid">
-                    {alphabet.map((letter) => {
+                    {keys.map((letter) => {
                       const marker = hintsAvailable && hintsEnabled ? keyboardMarkers.get(letter) : undefined
                       const correct = usedHooks.includes(`${side}:${letter}`)
                       const used = hintsAvailable && hintsEnabled && correct
@@ -539,9 +553,9 @@ function App() {
                               className={`letter-key ${marker ? 'key-available' : ''} ${used ? 'key-used' : ''}`}
                               onClick={() => submitLetter(letter)}
                               disabled={!playing || roundComplete}
-                              aria-label={`${letter}${guesses.length > 0 ? `, ${guesses.map((guess) => guess.label).join(', ')}` : marker ? `, ${side === 'left' ? t.leftHooks : t.rightHooks}` : ''}`}
+                              aria-label={`${keyLabel(letter)}${guesses.length > 0 ? `, ${guesses.map((guess) => guess.label).join(', ')}` : marker ? `, ${side === 'left' ? t.leftHooks : t.rightHooks}` : ''}`}
                           >
-                            {letter}
+                            {keyLabel(letter)}
                             {guesses.map((guess) => <span key={guess.side} className={`key-dot ${guess.side} ${guess.status}`} aria-hidden="true" />)}
                           </button>
                       )
@@ -577,7 +591,7 @@ function App() {
                     {currentRoot.left.map((letter) => {
                       const found = usedHooks.includes(`left:${letter}`)
                       const word = `${letter}${currentRoot.value}`
-                      return <span className={`hook-chip ${found ? 'found' : ''}`} key={letter} aria-label={revealAnswers ? `${word}, ${found ? t.foundAnswer : t.missedAnswer}` : !hintsEnabled && !found ? t.hiddenHook : undefined}>{revealAnswers ? word : hintsEnabled || found ? letter : '?'}{found && <Icon name="check" />}{revealAnswers && !found && <span>({t.missedAnswer})</span>}</span>
+                      return <span className={`hook-chip ${found ? 'found' : ''}`} key={letter} aria-label={revealAnswers ? `${displayWord(word)}, ${found ? t.foundAnswer : t.missedAnswer}` : !hintsEnabled && !found ? t.hiddenHook : undefined}>{revealAnswers ? displayWord(word) : hintsEnabled || found ? keyLabel(letter) : '?'}{found && <Icon name="check" />}{revealAnswers && !found && <span>({t.missedAnswer})</span>}</span>
                     })}
                   </div>
                 </div>}
@@ -587,7 +601,7 @@ function App() {
                     {currentRoot.right.map((letter) => {
                       const found = usedHooks.includes(`right:${letter}`)
                       const word = `${currentRoot.value}${letter}`
-                      return <span className={`hook-chip ${found ? 'found' : ''}`} key={letter} aria-label={revealAnswers ? `${word}, ${found ? t.foundAnswer : t.missedAnswer}` : !hintsEnabled && !found ? t.hiddenHook : undefined}>{revealAnswers ? word : hintsEnabled || found ? letter : '?'}{found && <Icon name="check" />}{revealAnswers && !found && <span>({t.missedAnswer})</span>}</span>
+                      return <span className={`hook-chip ${found ? 'found' : ''}`} key={letter} aria-label={revealAnswers ? `${displayWord(word)}, ${found ? t.foundAnswer : t.missedAnswer}` : !hintsEnabled && !found ? t.hiddenHook : undefined}>{revealAnswers ? displayWord(word) : hintsEnabled || found ? keyLabel(letter) : '?'}{found && <Icon name="check" />}{revealAnswers && !found && <span>({t.missedAnswer})</span>}</span>
                     })}
                   </div>
                 </div>}
@@ -608,20 +622,20 @@ function App() {
                 </div>
                 <nav className="root-index" aria-label={t.rootIndex}>
                   {rootGroups.map(({ letter }) => (
-                      <button key={letter} type="button" onClick={() => scrollToRootLetter(letter)} aria-label={`${t.rootIndex}: ${letter}`}>{letter}</button>
+                      <button key={letter} type="button" onClick={() => scrollToRootLetter(letter)} aria-label={`${t.rootIndex}: ${keyLabel(letter)}`}>{keyLabel(letter)}</button>
                   ))}
                 </nav>
                 <div className="root-picker" ref={rootPickerRef} key={rootSize}>
                   {rootGroups.map(({ letter, entries }) => (
                       <Fragment key={letter}>
-                        <div className="root-group-heading" data-root-letter={letter} tabIndex={-1}>{letter}</div>
+                        <div className="root-group-heading" data-root-letter={letter} tabIndex={-1}>{keyLabel(letter)}</div>
                         {entries.map(({ root, index }) => {
                           const completed = completedRoots.includes(root.value)
                           const attempted = attemptedRoots.includes(root.value)
                           const pending = resultsHidden && rootIndex === index && usedHooks.length + wrongGuesses.length > 0
                           return (
                               <button key={root.value} className={`root-chip ${rootIndex === index ? 'active' : ''}`} onClick={() => resetRound(index)} aria-pressed={rootIndex === index}>
-                                {root.value}
+                                {displayWord(root.value)}
                                 {attempted && <span className={`root-chip-dot ${pending ? 'submitted' : completed ? 'completed' : 'attempted'}`} aria-label={pending ? t.submittedGuess : completed ? 'All hooks discovered' : 'Attempted'} />}
                               </button>
                           )
@@ -645,11 +659,11 @@ function App() {
             <div className="modal-backdrop" onMouseDown={(event) => { if (event.target === event.currentTarget) setModal(null) }}>
               <section className="modal-card" role="dialog" aria-modal="true" aria-labelledby="modal-title">
                 <button className="modal-close" onClick={() => setModal(null)} aria-label={language === 'EN' ? 'Close dialog' : 'Cerrar diálogo'}>×</button>
-                <div className={`modal-icon ${modal}`}><Icon name={modal === 'help' ? 'spark' : 'users'} /></div>
-                <span className="section-kicker">{modal === 'help' ? t.howToPlay : t.rooms}</span>
-                <h2 id="modal-title">{modal === 'help' ? t.howTitle : t.roomTitle}</h2>
-                <p>{modal === 'help' ? t.howBody : t.roomBody}</p>
-                <button className="primary-button modal-action" onClick={() => setModal(null)}>{modal === 'help' ? language === 'EN' ? 'Got it' : 'Entendido' : t.roomAction}<Icon name="arrow" /></button>
+                <div className="modal-icon"><Icon name="spark" /></div>
+                <span className="section-kicker">{t.howToPlay}</span>
+                <h2 id="modal-title">{t.howTitle}</h2>
+                <p>{t.howBody}</p>
+                <button className="primary-button modal-action" onClick={() => setModal(null)}>{language === 'EN' ? 'Got it' : 'Entendido'}<Icon name="arrow" /></button>
               </section>
             </div>
         )}
