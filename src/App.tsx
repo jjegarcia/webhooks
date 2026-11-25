@@ -7,6 +7,7 @@ import type { Language } from './keyboard'
 import { loadLanguage, saveLanguage } from './languagePreference'
 import { getRoundRules } from './roundRules'
 import type { Mode } from './roundRules'
+import { loadRootSize, saveRootSize } from './rootSizePreference'
 import { rootsByLanguage } from './roots'
 
 
@@ -155,8 +156,8 @@ function Icon({ name }: { name: 'spark' | 'clock' | 'arrow' | 'help' | 'leaf' | 
 function App() {
   const [language, setLanguage] = useState<Language>(loadLanguage)
   const [mode, setMode] = useState<Mode>('practice')
-  const [rootIndex, setRootIndex] = useState(0)
-  const [rootSize, setRootSize] = useState<RootSize>(2)
+  const [rootSize, setRootSize] = useState<RootSize>(loadRootSize)
+  const [rootIndex, setRootIndex] = useState(() => rootsByLanguage[language].findIndex((root) => root.value.length === rootSize))
   const [attemptedRoots, setAttemptedRoots] = useState<string[]>([])
   const [completedRoots, setCompletedRoots] = useState<string[]>([])
   const [side, setSide] = useState<Side>('left')
@@ -229,6 +230,13 @@ function App() {
       setRootSize(nextRoot.size)
       setSide(nextRoot.side)
     } else {
+      const savedRootSize = loadRootSize()
+      setRootSize(savedRootSize)
+      if (roots[rootIndex]?.value.length !== savedRootSize) {
+        const firstRootIndex = roots.findIndex((root) => root.value.length === savedRootSize)
+        if (firstRootIndex === -1) throw new Error(`No ${savedRootSize}-letter roots for ${language}`)
+        setRootIndex(firstRootIndex)
+      }
       setSide('left')
     }
     setUsedHooks([])
@@ -288,6 +296,7 @@ function App() {
     const firstRootIndex = roots.findIndex((root) => root.value.length === size)
     if (firstRootIndex === -1) return
     setRootSize(size)
+    saveRootSize(size)
     resetRound(firstRootIndex)
   }
 
