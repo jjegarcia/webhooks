@@ -1,11 +1,12 @@
 import { Fragment, useEffect, useMemo, useRef, useState } from 'react'
 import hooksLogo from '../app/src/main/res/drawable/hooks_logo.png'
+import { randomBattleRoot } from './battleRoot'
+import type { RootSize, Side } from './battleRoot'
+import { getRoundRules } from './roundRules'
+import type { Mode } from './roundRules'
 import { roots } from './roots'
 
-type Side = 'left' | 'right'
-type Mode = 'practice' | 'ninja' | 'battle'
 type Language = 'EN' | 'ES'
-type RootSize = 2 | 3 | 4
 
 const copy = {
   EN: {
@@ -46,6 +47,7 @@ const copy = {
     rootIndex: 'Jump to roots by first letter',
     newRound: 'New round',
     switchSide: 'Switch side',
+    noHooksOnSide: 'No hooks on this side. Switch sides or choose another root.',
     nextRoot: 'Next root',
     stop: 'Stop round',
     stopped: 'Round finished.',
@@ -109,6 +111,7 @@ const copy = {
     rootIndex: 'Ir a raíces por letra inicial',
     newRound: 'Nueva ronda',
     switchSide: 'Cambiar lado',
+    noHooksOnSide: 'No hay ganchos en este lado. Cambia de lado o elige otra raíz.',
     nextRoot: 'Siguiente raíz',
     stop: 'Terminar ronda',
     stopped: 'Ronda terminada.',
@@ -190,16 +193,15 @@ function App() {
         .sort((a, b) => a.root.value.localeCompare(b.root.value)),
   })).filter(({ entries }) => entries.length > 0), [sizedRoots])
   const currentRoot = roots[rootIndex]
-  const totalHooks = currentRoot.left.length + currentRoot.right.length
   const completedCount = usedHooks.length
-  const roundComplete = completedCount === totalHooks
+  const { totalHooks, roundComplete, canSwitchSide, canStart } = getRoundRules(mode, currentRoot, side, playing, seconds, completedCount)
   const isTimed = timedModes.includes(mode)
   const resultsHidden = isTimed && seconds > 0 && !roundComplete
   const revealAnswers = isTimed && !resultsHidden
   const feedback = resultsHidden ? (usedHooks.length + wrongGuesses.length > 0 ? t.resultsPending : t.welcome) : message || t.welcome
   const hintsAvailable = mode !== 'ninja' && mode !== 'battle'
   const wordCount = trail.length + 1
-  const progress = (completedCount / totalHooks) * 100
+  const progress = totalHooks > 0 ? (completedCount / totalHooks) * 100 : 0
 
   const keyboardMarkers = useMemo(() => {
     const markers = new Map<string, Side>()
@@ -227,26 +229,43 @@ function App() {
 
   const selectMode = (nextMode: Mode) => {
     setMode(nextMode)
+    if (nextMode === 'battle') {
+      const nextRoot = randomBattleRoot(roots)
+      setRootIndex(nextRoot.index)
+      setRootSize(nextRoot.size)
+      setSide(nextRoot.side)
+    } else {
+      setSide('left')
+    }
     setUsedHooks([])
     setWrongGuesses([])
     setTrail([])
-    setSide('left')
     setStreak(0)
     setSeconds(40)
     setPlaying(!timedModes.includes(nextMode))
     setMessage('')
   }
 
-  const resetRound = (nextRootIndex = rootIndex) => {
+  const resetRound = (nextRootIndex = rootIndex, nextSide: Side = 'left') => {
     setRootIndex(nextRootIndex)
     setUsedHooks([])
     setWrongGuesses([])
     setTrail([])
-    setSide('left')
+    setSide(nextSide)
     setSeconds(40)
     setPlaying(!isTimed)
     setMessage(t.welcome)
     setStreak(0)
+  }
+
+  const newRound = () => {
+    if (mode === 'battle') {
+      const nextRoot = randomBattleRoot(roots)
+      setRootSize(nextRoot.size)
+      resetRound(nextRoot.index, nextRoot.side)
+    } else {
+      resetRound()
+    }
   }
 
   const selectRootSize = (size: RootSize) => {
@@ -297,7 +316,9 @@ function App() {
     const sideDone = possibleLetters.every((item) => nextUsed.includes(`${side}:${item}`))
     const allDone = nextUsed.length === totalHooks
     if (allDone) {
-      setCompletedRoots((value) => value.includes(currentRoot.value) ? value : [...value, currentRoot.value])
+      if (nextUsed.length === currentRoot.left.length + currentRoot.right.length) {
+        setCompletedRoots((value) => value.includes(currentRoot.value) ? value : [...value, currentRoot.value])
+      }
       setMessage(t.completed)
       setPlaying(false)
     } else if (!isTimed && sideDone && side === 'left') {
@@ -332,7 +353,11 @@ function App() {
   }, [modal, submitLetter, trail, usedHooks, side])
 
   const handleStart = () => {
-    if (seconds === 0 || roundComplete) resetRound()
+    if (mode === 'ninja' && (seconds === 0 || roundComplete)) {
+      newRound()
+      return
+    }
+    if (seconds === 0 || roundComplete) newRound()
     setPlaying(true)
     setMessage('')
   }
@@ -387,7 +412,7 @@ function App() {
             <div className="mode-description">{isTimed && <><Icon name="clock" />{t.timed}</>}</div>
           </div>
 
-          <div className="dashboard">
+          <div className={`dashboard ${mode === 'battle' && !revealAnswers ? 'dashboard-no-sidebar' : ''}`}>
             <section className="game-column">
               <div className="stats-row">
                 <div className="stat-card score-stat">
@@ -420,9 +445,9 @@ function App() {
                   </div>
                   <div className="board-actions">
                     {isTimed && !playing ? (
-                        <button className="primary-button compact-button" onClick={handleStart}><span className="play-triangle">▶</span>{seconds === 0 ? t.newRound : t.start}</button>
+                        <button className="primary-button compact-button" onClick={handleStart} disabled={!canStart}><span className="play-triangle">▶</span>{seconds === 0 || roundComplete ? t.newRound : t.start}</button>
                     ) : (
-                        <button className="subtle-button" onClick={() => resetRound()}><Icon name="refresh" />{t.newRound}</button>
+                        <button className="subtle-button" onClick={newRound}><Icon name="refresh" />{t.newRound}</button>
                     )}
                     {isTimed && playing && <button className="stop-button" onClick={handleStop} aria-label={t.stop} title={t.stop}><span className="stop-icon" aria-hidden="true" /></button>}
                   </div>
@@ -434,7 +459,11 @@ function App() {
                   <div className="word-zone-label">
                     <span className="side-indicator">{side === 'left' ? '01' : '02'}</span>
                     <div><strong>{side === 'left' ? t.left : t.right}</strong><span>{side === 'left' ? t.leftHint : t.rightHint}</span></div>
-                    <span className={`side-pill ${side}`}>{side === 'left' ? t.leftHooks : t.rightHooks}</span>
+                    {mode === 'ninja' ? (
+                        <button className={`side-pill side-pill-button ${side}`} type="button" onClick={() => setSide((value) => value === 'left' ? 'right' : 'left')} disabled={!canSwitchSide} aria-label={`${t.switchSide}: ${side === 'left' ? t.leftHooks : t.rightHooks}`}>
+                          {side === 'left' ? t.leftHooks : t.rightHooks} <span aria-hidden="true">⇄</span>
+                        </button>
+                    ) : <span className={`side-pill ${side}`}>{side === 'left' ? t.leftHooks : t.rightHooks}</span>}
                   </div>
 
                   <div className="word-trail" aria-live="polite">
@@ -466,8 +495,12 @@ function App() {
 
                   <div className={`feedback-line ${feedback === t.incorrect || feedback === t.repeated ? 'feedback-warn' : ''} ${feedback === t.completed ? 'feedback-success' : ''}`} aria-live="polite">
                     <span className="feedback-mark">{feedback === t.incorrect || feedback === t.repeated ? '!' : feedback === t.completed ? '✓' : '✦'}</span>
-                    <span>{feedback}</span>
+                    <span>{mode === 'ninja' && !playing && seconds > 0 && totalHooks === 0 ? t.noHooksOnSide : feedback}</span>
                     {roundComplete && <button className="next-root-button" onClick={() => {
+                      if (mode === 'battle') {
+                        newRound()
+                        return
+                      }
                       const currentSizeIndex = sizedRoots.findIndex(({ index }) => index === rootIndex)
                       const nextRoot = sizedRoots[(currentSizeIndex + 1) % sizedRoots.length]
                       if (nextRoot) resetRound(nextRoot.index)
@@ -489,7 +522,7 @@ function App() {
                       const marker = hintsAvailable && hintsEnabled ? keyboardMarkers.get(letter) : undefined
                       const correct = usedHooks.includes(`${side}:${letter}`)
                       const used = hintsAvailable && hintsEnabled && correct
-                      const guesses = (['left', 'right'] as const).flatMap((guessSide) => {
+                      const guesses = (isTimed ? [side] : (['left', 'right'] as const)).flatMap((guessSide) => {
                         const found = usedHooks.includes(`${guessSide}:${letter}`)
                         const wrong = wrongGuesses.includes(`${guessSide}:${letter}`)
                         const unguessed = revealAnswers && !found && currentRoot[guessSide].includes(letter)
@@ -526,19 +559,19 @@ function App() {
                       <span><i className="legend-dot wrong" />{t.wrongGuess}</span>
                       {revealAnswers && <span><i className="legend-dot unguessed" />{t.missedAnswer}</span>}
                     </>}
-                    <button className="switch-side" onClick={() => setSide((value) => value === 'left' ? 'right' : 'left')} disabled={roundComplete}>
+                    {mode === 'practice' && <button className="switch-side" onClick={() => setSide((value) => value === 'left' ? 'right' : 'left')} disabled={!canSwitchSide}>
                       {t.switchSide}<span>⇄</span>
-                    </button>
+                    </button>}
                   </div>
                 </div>
               </section>
             </section>
 
-            <aside className="sidebar">
+            {(mode !== 'battle' || revealAnswers) && <aside className="sidebar">
               {(hintsAvailable || revealAnswers) && <section className="side-card hooks-card">
                 <div className="side-card-title"><div><span className="section-kicker">{revealAnswers ? t.correctAnswers : t.available}</span><h2>{language === 'EN' ? 'The hook board' : 'Tablero de ganchos'}</h2></div><span className="hook-count">{completedCount}<span>/{totalHooks}</span></span></div>
                 <p className="side-description">{language === 'EN' ? 'Every letter is a new way to grow your word.' : 'Cada letra es una nueva forma de ampliar tu palabra.'}</p>
-                <div className="hook-list">
+                {(!isTimed || side === 'left') && <div className="hook-list">
                   <div className="hook-list-heading"><span className="hook-direction">←</span><strong>{t.leftHooks}</strong><span>{currentRoot.left.length - usedHooks.filter((key) => key.startsWith('left:')).length} {t.remaining}</span></div>
                   <div className="hook-letters">
                     {currentRoot.left.map((letter) => {
@@ -547,8 +580,8 @@ function App() {
                       return <span className={`hook-chip ${found ? 'found' : ''}`} key={letter} aria-label={revealAnswers ? `${word}, ${found ? t.foundAnswer : t.missedAnswer}` : !hintsEnabled && !found ? t.hiddenHook : undefined}>{revealAnswers ? word : hintsEnabled || found ? letter : '?'}{found && <Icon name="check" />}{revealAnswers && !found && <span>({t.missedAnswer})</span>}</span>
                     })}
                   </div>
-                </div>
-                <div className="hook-list">
+                </div>}
+                {(!isTimed || side === 'right') && <div className="hook-list">
                   <div className="hook-list-heading"><span className="hook-direction">→</span><strong>{t.rightHooks}</strong><span>{currentRoot.right.length - usedHooks.filter((key) => key.startsWith('right:')).length} {t.remaining}</span></div>
                   <div className="hook-letters">
                     {currentRoot.right.map((letter) => {
@@ -557,11 +590,11 @@ function App() {
                       return <span className={`hook-chip ${found ? 'found' : ''}`} key={letter} aria-label={revealAnswers ? `${word}, ${found ? t.foundAnswer : t.missedAnswer}` : !hintsEnabled && !found ? t.hiddenHook : undefined}>{revealAnswers ? word : hintsEnabled || found ? letter : '?'}{found && <Icon name="check" />}{revealAnswers && !found && <span>({t.missedAnswer})</span>}</span>
                     })}
                   </div>
-                </div>
+                </div>}
                 <div className="root-progress"><div className="progress-copy"><span>{t.solved}</span><strong>{Math.round(progress)}%</strong></div><div className="progress-track"><span style={{ width: `${progress}%` }} /></div></div>
               </section>}
 
-              <section className="side-card root-card">
+              {mode !== 'battle' && <section className="side-card root-card">
                 <div className="side-card-title"><div><span className="section-kicker">{t.roots} ({sizedRoots.length})</span><h2>{language === 'EN' ? 'Pick a new starting point' : 'Elige un nuevo comienzo'}</h2></div></div>
                 <div className="root-size-control">
                   <span className="section-kicker">{t.rootLength}</span>
@@ -597,13 +630,13 @@ function App() {
                   ))}
                 </div>
                 <div className="root-card-footer"><span className="round-leaf"><Icon name="leaf" /></span><span>{language === 'EN' ? 'A new root, a new possibility.' : 'Una raíz nueva, una posibilidad nueva.'}</span></div>
-              </section>
+              </section>}
 
               {hintsAvailable && <section className="tip-card">
                 <div className="tip-graphic"><span>✦</span><i /><b /></div>
                 <div className="tip-content"><span className="section-kicker">{t.hint}</span><strong>{language === 'EN' ? 'Look both ways.' : 'Mira a ambos lados.'}</strong><p>{language === 'EN' ? 'Some roots open up on the left. Others have a surprise waiting on the right.' : 'Algunas raíces se amplían a la izquierda. Otras esconden una sorpresa a la derecha.'}</p></div>
               </section>}
-            </aside>
+            </aside>}
           </div>
           <footer className="page-footer"><span>HOOKS<span className="footer-dot">.</span></span><span>{language === 'EN' ? 'Made for curious minds.' : 'Hecho para mentes curiosas.'}</span><span className="footer-right"><Icon name="leaf" />{t.localOnly}</span></footer>
         </main>
