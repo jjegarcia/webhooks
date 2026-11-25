@@ -19,3 +19,4 @@ Only the selected side is played and counted; the root picker is hidden.
 Spanish uses the Spanish hook tables and treats CH, LL, Ñ, and RR as single
 tiles. Physical keys 1–4 select them, and Ñ can also be typed directly.
 Switching languages starts a fresh round and clears the current score and progress.
+The selected language is saved in the browser and restored on the next visit.

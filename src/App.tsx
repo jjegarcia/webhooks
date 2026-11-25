@@ -4,6 +4,7 @@ import { randomBattleRoot } from './battleRoot'
 import type { RootSize, Side } from './battleRoot'
 import { displayWord, keyLabel, keyboardKeys, physicalKey } from './keyboard'
 import type { Language } from './keyboard'
+import { loadLanguage, saveLanguage } from './languagePreference'
 import { getRoundRules } from './roundRules'
 import type { Mode } from './roundRules'
 import { rootsByLanguage } from './roots'
@@ -152,7 +153,7 @@ function Icon({ name }: { name: 'spark' | 'clock' | 'arrow' | 'help' | 'leaf' | 
 }
 
 function App() {
-  const [language, setLanguage] = useState<Language>('EN')
+  const [language, setLanguage] = useState<Language>(loadLanguage)
   const [mode, setMode] = useState<Mode>('practice')
   const [rootIndex, setRootIndex] = useState(0)
   const [rootSize, setRootSize] = useState<RootSize>(2)
@@ -264,6 +265,7 @@ function App() {
   const changeLanguage = () => {
     const nextLanguage = language === 'EN' ? 'ES' : 'EN'
     const nextRoots = rootsByLanguage[nextLanguage]
+    saveLanguage(nextLanguage)
     setLanguage(nextLanguage)
     setAttemptedRoots([])
     setCompletedRoots([])
