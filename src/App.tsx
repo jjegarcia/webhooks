@@ -7,6 +7,7 @@ import type { Language } from './keyboard'
 import { loadLanguage, saveLanguage } from './languagePreference'
 import { getRoundRules } from './roundRules'
 import type { Mode } from './roundRules'
+import { loadRoot, saveRoot } from './rootPreference'
 import { loadRootSize, saveRootSize } from './rootSizePreference'
 import { rootsByLanguage } from './roots'
 
@@ -141,6 +142,21 @@ const modeIcons: Record<Mode, string> = {
   battle: '⚔',
 }
 
+function getSavedRootSelection(language: Language): { rootIndex: number; rootSize: RootSize } {
+  const roots = rootsByLanguage[language]
+  const savedRoot = loadRoot(language, roots)
+  const savedIndex = savedRoot === null ? -1 : roots.findIndex((root) => root.value === savedRoot)
+  const savedLength = savedIndex === -1 ? null : roots[savedIndex].value.length
+  const savedSize = savedLength === 2 || savedLength === 3 || savedLength === 4 ? savedLength : null
+  const rootSize = savedSize ?? loadRootSize()
+  return {
+    rootSize,
+    rootIndex: savedIndex === -1 || savedSize === null
+      ? roots.findIndex((root) => root.value.length === rootSize)
+      : savedIndex,
+  }
+}
+
 function Icon({ name }: { name: 'spark' | 'clock' | 'arrow' | 'help' | 'leaf' | 'check' | 'refresh' }) {
   const common = { width: 18, height: 18, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: 1.8, strokeLinecap: 'round' as const, strokeLinejoin: 'round' as const, 'aria-hidden': true as const }
 
@@ -156,8 +172,9 @@ function Icon({ name }: { name: 'spark' | 'clock' | 'arrow' | 'help' | 'leaf' | 
 function App() {
   const [language, setLanguage] = useState<Language>(loadLanguage)
   const [mode, setMode] = useState<Mode>('practice')
-  const [rootSize, setRootSize] = useState<RootSize>(loadRootSize)
-  const [rootIndex, setRootIndex] = useState(() => rootsByLanguage[language].findIndex((root) => root.value.length === rootSize))
+  const [initialRootSelection] = useState(() => getSavedRootSelection(language))
+  const [rootSize, setRootSize] = useState<RootSize>(initialRootSelection.rootSize)
+  const [rootIndex, setRootIndex] = useState(initialRootSelection.rootIndex)
   const [attemptedRoots, setAttemptedRoots] = useState<string[]>([])
   const [completedRoots, setCompletedRoots] = useState<string[]>([])
   const [side, setSide] = useState<Side>('left')
@@ -191,7 +208,7 @@ function App() {
   const completedCount = usedHooks.length
   const { totalHooks, roundComplete, canSwitchSide, canStart } = getRoundRules(mode, currentRoot, side, playing, seconds, completedCount)
   const isTimed = timedModes.includes(mode)
-  const resultsHidden = isTimed && seconds > 0 && !roundComplete
+  const resultsHidden = isTimed && seconds > 0 && (mode === 'battle' || !roundComplete)
   const revealAnswers = isTimed && !resultsHidden
   const feedback = resultsHidden ? (usedHooks.length + wrongGuesses.length > 0 ? t.resultsPending : t.welcome) : message || t.welcome
   const hintsAvailable = mode !== 'ninja' && mode !== 'battle'
@@ -230,13 +247,9 @@ function App() {
       setRootSize(nextRoot.size)
       setSide(nextRoot.side)
     } else {
-      const savedRootSize = loadRootSize()
-      setRootSize(savedRootSize)
-      if (roots[rootIndex]?.value.length !== savedRootSize) {
-        const firstRootIndex = roots.findIndex((root) => root.value.length === savedRootSize)
-        if (firstRootIndex === -1) throw new Error(`No ${savedRootSize}-letter roots for ${language}`)
-        setRootIndex(firstRootIndex)
-      }
+      const savedSelection = getSavedRootSelection(language)
+      setRootSize(savedSelection.rootSize)
+      setRootIndex(savedSelection.rootIndex)
       setSide('left')
     }
     setUsedHooks([])
@@ -270,6 +283,18 @@ function App() {
     }
   }
 
+  const nextBattleRoot = () => {
+    const nextRoot = randomBattleRoot(roots)
+    setRootIndex(nextRoot.index)
+    setRootSize(nextRoot.size)
+    setSide(nextRoot.side)
+    setUsedHooks([])
+    setWrongGuesses([])
+    setTrail([])
+    setMessage(t.welcome)
+    setStreak(0)
+  }
+
   const changeLanguage = () => {
     const nextLanguage = language === 'EN' ? 'ES' : 'EN'
     const nextRoots = rootsByLanguage[nextLanguage]
@@ -287,6 +312,7 @@ function App() {
     } else {
       const nextRootIndex = nextRoots.findIndex((root) => root.value.length === rootSize)
       if (nextRootIndex === -1) throw new Error(`No ${rootSize}-letter roots for ${nextLanguage}`)
+      saveRoot(nextLanguage, nextRoots[nextRootIndex].value)
       resetRound(nextRootIndex)
     }
     setMessage('')
@@ -297,7 +323,19 @@ function App() {
     if (firstRootIndex === -1) return
     setRootSize(size)
     saveRootSize(size)
+    saveRoot(language, roots[firstRootIndex].value)
     resetRound(firstRootIndex)
+  }
+
+  const selectRoot = (index: number) => {
+    const root = roots[index]
+    if (!root) return
+    const size = root.value.length
+    if (size !== 2 && size !== 3 && size !== 4) throw new Error(`Unsupported root size: ${size}`)
+    saveRoot(language, root.value)
+    saveRootSize(size)
+    setRootSize(size)
+    resetRound(index)
   }
 
   const scrollToRootLetter = (letter: string) => {
@@ -345,7 +383,7 @@ function App() {
         setCompletedRoots((value) => value.includes(currentRoot.value) ? value : [...value, currentRoot.value])
       }
       setMessage(t.completed)
-      setPlaying(false)
+      if (mode !== 'battle') setPlaying(false)
     } else if (!isTimed && sideDone && side === 'left') {
       setSide('right')
       setMessage(language === 'EN' ? 'Left side complete — now hook the other side.' : 'Lado izquierdo completo. ¡Vamos al otro!')
@@ -471,10 +509,10 @@ function App() {
                   <div className="board-actions">
                     {isTimed && !playing ? (
                         <button className="primary-button compact-button" onClick={handleStart} disabled={!canStart}><span className="play-triangle">▶</span>{seconds === 0 || roundComplete ? t.newRound : t.start}</button>
-                    ) : (
+                    ) : mode !== 'battle' && (
                         <button className="subtle-button" onClick={newRound}><Icon name="refresh" />{t.newRound}</button>
                     )}
-                    {isTimed && playing && <button className="stop-button" onClick={handleStop} aria-label={t.stop} title={t.stop}><span className="stop-icon" aria-hidden="true" /></button>}
+                    {isTimed && mode !== 'battle' && playing && <button className="stop-button" onClick={handleStop} aria-label={t.stop} title={t.stop}><span className="stop-icon" aria-hidden="true" /></button>}
                   </div>
                 </div>
 
@@ -521,14 +559,14 @@ function App() {
                   <div className={`feedback-line ${feedback === t.incorrect || feedback === t.repeated ? 'feedback-warn' : ''} ${feedback === t.completed ? 'feedback-success' : ''}`} aria-live="polite">
                     <span className="feedback-mark">{feedback === t.incorrect || feedback === t.repeated ? '!' : feedback === t.completed ? '✓' : '✦'}</span>
                     <span>{mode === 'ninja' && !playing && seconds > 0 && totalHooks === 0 ? t.noHooksOnSide : feedback}</span>
-                    {roundComplete && <button className="next-root-button" onClick={() => {
+                    {roundComplete && (!resultsHidden || mode !== 'battle') && <button className="next-root-button" onClick={() => {
                       if (mode === 'battle') {
-                        newRound()
+                        nextBattleRoot()
                         return
                       }
                       const currentSizeIndex = sizedRoots.findIndex(({ index }) => index === rootIndex)
                       const nextRoot = sizedRoots[(currentSizeIndex + 1) % sizedRoots.length]
-                      if (nextRoot) resetRound(nextRoot.index)
+                      if (nextRoot) selectRoot(nextRoot.index)
                     }}>{t.nextRoot}<Icon name="arrow" /></button>}
                   </div>
                 </div>
@@ -645,7 +683,7 @@ function App() {
                           const attempted = attemptedRoots.includes(root.value)
                           const pending = resultsHidden && rootIndex === index && usedHooks.length + wrongGuesses.length > 0
                           return (
-                              <button key={root.value} className={`root-chip ${rootIndex === index ? 'active' : ''}`} onClick={() => resetRound(index)} aria-pressed={rootIndex === index}>
+                              <button key={root.value} className={`root-chip ${rootIndex === index ? 'active' : ''}`} onClick={() => selectRoot(index)} aria-pressed={rootIndex === index}>
                                 {displayWord(root.value)}
                                 {attempted && <span className={`root-chip-dot ${pending ? 'submitted' : completed ? 'completed' : 'attempted'}`} aria-label={pending ? t.submittedGuess : completed ? 'All hooks discovered' : 'Attempted'} />}
                               </button>
