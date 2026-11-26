@@ -67,7 +67,6 @@ const copy = {
     howTitle: 'The art of the hook',
     howBody: 'Start with the highlighted root. Add one letter before it or after it to make a word. Find every hook on one side, then keep going on the other.',
     timed: '40 second round',
-    localOnly: 'Solo preview',
     hint: 'Hint',
     modeNote: 'Choose a mode to make it your own.',
     solved: 'FOUND',
@@ -127,7 +126,6 @@ const copy = {
     howTitle: 'El arte del gancho',
     howBody: 'Empieza con la raíz resaltada. Añade una letra antes o después para crear una palabra. Encuentra todos los ganchos de un lado y continúa por el otro.',
     timed: 'Ronda de 40 segundos',
-    localOnly: 'Vista individual',
     hint: 'Pista',
     modeNote: 'Elige un modo y hazlo tuyo.',
     solved: 'ENCONTRADAS',
@@ -458,10 +456,6 @@ function App() {
               <h1>{t.practiceTitle}</h1>
               <p>{t.practiceSubtitle}</p>
             </div>
-            <div className="player-note">
-              <div className="note-icon"><Icon name="spark" /></div>
-              <div><strong>{t.localOnly}</strong><span>{t.modeNote}</span></div>
-            </div>
           </div>
 
           <div className="mode-row">
@@ -522,11 +516,7 @@ function App() {
                   <div className="word-zone-label">
                     <span className="side-indicator">{side === 'left' ? '01' : '02'}</span>
                     <div><strong>{side === 'left' ? t.left : t.right}</strong><span>{side === 'left' ? t.leftHint : t.rightHint}</span></div>
-                    {mode === 'ninja' ? (
-                        <button className={`side-pill side-pill-button ${side}`} type="button" onClick={() => setSide((value) => value === 'left' ? 'right' : 'left')} disabled={!canSwitchSide} aria-label={`${t.switchSide}: ${side === 'left' ? t.leftHooks : t.rightHooks}`}>
-                          {side === 'left' ? t.leftHooks : t.rightHooks} <span aria-hidden="true">⇄</span>
-                        </button>
-                    ) : <span className={`side-pill ${side}`}>{side === 'left' ? t.leftHooks : t.rightHooks}</span>}
+                    <span className={`side-pill ${side}`}>{side === 'left' ? t.leftHooks : t.rightHooks}</span>
                   </div>
 
                   <div className="word-trail" aria-live="polite">
@@ -622,7 +612,7 @@ function App() {
                       <span><i className="legend-dot wrong" />{t.wrongGuess}</span>
                       {revealAnswers && <span><i className="legend-dot unguessed" />{t.missedAnswer}</span>}
                     </>}
-                    {mode === 'practice' && <button className="switch-side" onClick={() => setSide((value) => value === 'left' ? 'right' : 'left')} disabled={!canSwitchSide}>
+                    {(mode === 'practice' || mode === 'ninja') && <button className="switch-side" onClick={() => setSide((value) => value === 'left' ? 'right' : 'left')} disabled={!canSwitchSide}>
                       {t.switchSide}<span>⇄</span>
                     </button>}
                   </div>
@@ -701,7 +691,7 @@ function App() {
               </section>}
             </aside>}
           </div>
-          <footer className="page-footer"><span>HOOKS<span className="footer-dot">.</span></span><span>{language === 'EN' ? 'Made for curious minds.' : 'Hecho para mentes curiosas.'}</span><span className="footer-right"><Icon name="leaf" />{t.localOnly}</span></footer>
+          <footer className="page-footer"><span>HOOKS<span className="footer-dot">.</span></span><span>{language === 'EN' ? 'Made for curious minds.' : 'Hecho para mentes curiosas.'}</span></footer>
         </main>
 
         {modal && (
