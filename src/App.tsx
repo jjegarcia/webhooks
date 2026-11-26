@@ -191,7 +191,7 @@ function App() {
   const completedCount = usedHooks.length
   const { totalHooks, roundComplete, canSwitchSide, canStart } = getRoundRules(mode, currentRoot, side, playing, seconds, completedCount)
   const isTimed = timedModes.includes(mode)
-  const resultsHidden = isTimed && seconds > 0 && !roundComplete
+  const resultsHidden = isTimed && seconds > 0 && (mode === 'battle' || !roundComplete)
   const revealAnswers = isTimed && !resultsHidden
   const feedback = resultsHidden ? (usedHooks.length + wrongGuesses.length > 0 ? t.resultsPending : t.welcome) : message || t.welcome
   const hintsAvailable = mode !== 'ninja' && mode !== 'battle'
@@ -270,6 +270,18 @@ function App() {
     }
   }
 
+  const nextBattleRoot = () => {
+    const nextRoot = randomBattleRoot(roots)
+    setRootIndex(nextRoot.index)
+    setRootSize(nextRoot.size)
+    setSide(nextRoot.side)
+    setUsedHooks([])
+    setWrongGuesses([])
+    setTrail([])
+    setMessage(t.welcome)
+    setStreak(0)
+  }
+
   const changeLanguage = () => {
     const nextLanguage = language === 'EN' ? 'ES' : 'EN'
     const nextRoots = rootsByLanguage[nextLanguage]
@@ -345,7 +357,7 @@ function App() {
         setCompletedRoots((value) => value.includes(currentRoot.value) ? value : [...value, currentRoot.value])
       }
       setMessage(t.completed)
-      setPlaying(false)
+      if (mode !== 'battle') setPlaying(false)
     } else if (!isTimed && sideDone && side === 'left') {
       setSide('right')
       setMessage(language === 'EN' ? 'Left side complete — now hook the other side.' : 'Lado izquierdo completo. ¡Vamos al otro!')
@@ -471,10 +483,10 @@ function App() {
                   <div className="board-actions">
                     {isTimed && !playing ? (
                         <button className="primary-button compact-button" onClick={handleStart} disabled={!canStart}><span className="play-triangle">▶</span>{seconds === 0 || roundComplete ? t.newRound : t.start}</button>
-                    ) : (
+                    ) : mode !== 'battle' && (
                         <button className="subtle-button" onClick={newRound}><Icon name="refresh" />{t.newRound}</button>
                     )}
-                    {isTimed && playing && <button className="stop-button" onClick={handleStop} aria-label={t.stop} title={t.stop}><span className="stop-icon" aria-hidden="true" /></button>}
+                    {isTimed && mode !== 'battle' && playing && <button className="stop-button" onClick={handleStop} aria-label={t.stop} title={t.stop}><span className="stop-icon" aria-hidden="true" /></button>}
                   </div>
                 </div>
 
@@ -521,9 +533,9 @@ function App() {
                   <div className={`feedback-line ${feedback === t.incorrect || feedback === t.repeated ? 'feedback-warn' : ''} ${feedback === t.completed ? 'feedback-success' : ''}`} aria-live="polite">
                     <span className="feedback-mark">{feedback === t.incorrect || feedback === t.repeated ? '!' : feedback === t.completed ? '✓' : '✦'}</span>
                     <span>{mode === 'ninja' && !playing && seconds > 0 && totalHooks === 0 ? t.noHooksOnSide : feedback}</span>
-                    {roundComplete && <button className="next-root-button" onClick={() => {
+                    {roundComplete && (!resultsHidden || mode !== 'battle') && <button className="next-root-button" onClick={() => {
                       if (mode === 'battle') {
-                        newRound()
+                        nextBattleRoot()
                         return
                       }
                       const currentSizeIndex = sizedRoots.findIndex(({ index }) => index === rootIndex)
