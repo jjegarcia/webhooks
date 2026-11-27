@@ -133,7 +133,7 @@ const copy = {
   },
 }
 
-const timedModes: Mode[] = ['ninja', 'battle']
+const timedModes: Mode[] = ['battle']
 const modeIcons: Record<Mode, string> = {
   practice: '✳',
   ninja: '◈',
@@ -487,11 +487,11 @@ function App() {
                   <strong>{resultsHidden ? '—' : wordCount.toString().padStart(2, '0')}</strong>
                   <span className="stat-caption">{resultsHidden ? '—' : misses} {language === 'EN' ? 'misses' : 'errores'}</span>
                 </div>
-                <div className={`stat-card timer-stat ${isTimed ? 'timer-on' : ''}`}>
+                {isTimed && <div className={`stat-card timer-stat timer-on`}>
                   <span className="stat-label"><Icon name="clock" />{language === 'EN' ? 'TIME' : 'TIEMPO'}</span>
-                  <strong>{isTimed ? `0:${seconds.toString().padStart(2, '0')}` : '— —'}</strong>
-                  <span className="stat-caption">{isTimed ? (playing ? language === 'EN' ? 'Round in progress' : 'Ronda en curso' : t.start) : t.timed}</span>
-                </div>
+                  <strong>0:{seconds.toString().padStart(2, '0')}</strong>
+                  <span className="stat-caption">{playing ? language === 'EN' ? 'Round in progress' : 'Ronda en curso' : t.start}</span>
+                </div>}
               </div>
 
               <section className="board-card">
