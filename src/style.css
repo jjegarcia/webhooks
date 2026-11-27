@@ -90,7 +90,9 @@ button:focus-visible, a:focus-visible { outline: 3px solid #85c89f; outline-offs
 .dashboard { display: grid; grid-template-columns: minmax(0, 1fr) 315px; align-items: start; gap: 20px; }
 .dashboard.dashboard-no-sidebar { grid-template-columns: minmax(0, 1fr); }
 .game-column { min-width: 0; }
-.stats-row { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; margin-bottom: 14px; }
+.timer-row { display: flex; justify-content: flex-end; margin-bottom: 14px; }
+.timer-row .stat-card { width: 190px; }
+.stats-row { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin-top: 14px; }
 .stat-card { min-height: 104px; padding: 15px 16px 12px; border: 1px solid #e9ede8; border-radius: 12px; background: var(--surface); box-shadow: 0 4px 14px rgb(34 57 43 / 2%); }
 .stat-label { display: flex; align-items: center; gap: 5px; font-size: 9px; }
 .stat-label svg { width: 13px; height: 13px; }
@@ -294,7 +296,9 @@ button:focus-visible, a:focus-visible { outline: 3px solid #85c89f; outline-offs
   .mode-symbol { font-size: 12px; }
   .mode-description { min-height: 14px; font-size: 9px; }
   .dashboard { gap: 12px; }
-  .stats-row { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin-bottom: 11px; }
+  .stats-row { gap: 8px; margin-top: 11px; }
+  .timer-row { margin-bottom: 11px; }
+  .timer-row .stat-card { width: 150px; }
   .stat-card { min-height: 88px; padding: 11px 12px 9px; }
   .stat-card > strong { margin-top: 5px; font-size: 22px; }
   .stat-caption { font-size: 8px; }

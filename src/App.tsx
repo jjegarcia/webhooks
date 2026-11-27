@@ -471,28 +471,13 @@ function App() {
 
           <div className={`dashboard ${mode === 'battle' && !revealAnswers ? 'dashboard-no-sidebar' : ''}`}>
             <section className="game-column">
-              <div className="stats-row">
-                <div className="stat-card score-stat">
-                  <span className="stat-label">{t.score}</span>
-                  <strong>{resultsHidden ? '—' : score.toLocaleString(language === 'EN' ? 'en-US' : 'es-ES')}</strong>
-                  <span className="stat-caption"><span className="stat-trend">↗</span> {language === 'EN' ? 'Keep it going' : '¡Sigue así!'}</span>
-                </div>
-                <div className="stat-card">
-                  <span className="stat-label">{t.streak}</span>
-                  <strong>{resultsHidden ? '—' : streak}<span className="stat-unit">×</span></strong>
-                  <span className="stat-caption"><span className="streak-icon">✳</span> {language === 'EN' ? `Best ${resultsHidden ? '—' : bestStreak}` : `Mejor ${resultsHidden ? '—' : bestStreak}`}</span>
-                </div>
-                <div className="stat-card">
-                  <span className="stat-label">{t.words}</span>
-                  <strong>{resultsHidden ? '—' : wordCount.toString().padStart(2, '0')}</strong>
-                  <span className="stat-caption">{resultsHidden ? '—' : misses} {language === 'EN' ? 'misses' : 'errores'}</span>
-                </div>
-                {isTimed && <div className={`stat-card timer-stat timer-on`}>
+              {isTimed && <div className="timer-row">
+                <div className="stat-card timer-stat timer-on">
                   <span className="stat-label"><Icon name="clock" />{language === 'EN' ? 'TIME' : 'TIEMPO'}</span>
                   <strong>0:{seconds.toString().padStart(2, '0')}</strong>
                   <span className="stat-caption">{playing ? language === 'EN' ? 'Round in progress' : 'Ronda en curso' : t.start}</span>
-                </div>}
-              </div>
+                </div>
+              </div>}
 
               <section className="board-card">
                 <div className="board-card-header">
@@ -618,6 +603,23 @@ function App() {
                   </div>
                 </div>
               </section>
+              <div className="stats-row">
+                <div className="stat-card score-stat">
+                  <span className="stat-label">{t.score}</span>
+                  <strong>{resultsHidden ? '—' : score.toLocaleString(language === 'EN' ? 'en-US' : 'es-ES')}</strong>
+                  <span className="stat-caption"><span className="stat-trend">↗</span> {language === 'EN' ? 'Keep it going' : '¡Sigue así!'}</span>
+                </div>
+                <div className="stat-card">
+                  <span className="stat-label">{t.streak}</span>
+                  <strong>{resultsHidden ? '—' : streak}<span className="stat-unit">×</span></strong>
+                  <span className="stat-caption"><span className="streak-icon">✳</span> {language === 'EN' ? `Best ${resultsHidden ? '—' : bestStreak}` : `Mejor ${resultsHidden ? '—' : bestStreak}`}</span>
+                </div>
+                <div className="stat-card">
+                  <span className="stat-label">{t.words}</span>
+                  <strong>{resultsHidden ? '—' : wordCount.toString().padStart(2, '0')}</strong>
+                  <span className="stat-caption">{resultsHidden ? '—' : misses} {language === 'EN' ? 'misses' : 'errores'}</span>
+                </div>
+              </div>
             </section>
 
             {(mode !== 'battle' || revealAnswers) && <aside className="sidebar">
