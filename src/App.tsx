@@ -8,7 +8,7 @@ import { loadLanguage, saveLanguage } from './languagePreference'
 import { getRoundRules } from './roundRules'
 import type { Mode } from './roundRules'
 import { loadRoot, saveRoot } from './rootPreference'
-import { loadRootSize, saveRootSize } from './rootSizePreference'
+import { loadBattleRootSize, loadRootSize, saveBattleRootSize, saveRootSize } from './rootSizePreference'
 import { rootsByLanguage } from './roots'
 
 
@@ -58,7 +58,7 @@ const copy = {
     rootHint: 'A fresh root is waiting',
     trail: 'Your word trail',
     trailHint: 'Each new word starts with the same root.',
-    welcome: 'Ready when you are',
+    welcome: '',
     correct: 'Nice hook! Keep going.',
     incorrect: 'Not quite — try another letter.',
     repeated: 'You already found that hook.',
@@ -117,7 +117,7 @@ const copy = {
     rootHint: 'Una nueva raíz te espera',
     trail: 'Tu camino de palabras',
     trailHint: 'Cada palabra nueva empieza con la misma raíz.',
-    welcome: 'Cuando quieras',
+    welcome: '',
     correct: '¡Buen gancho! Sigue así.',
     incorrect: 'No exactamente. Prueba otra letra.',
     repeated: 'Ya encontraste ese gancho.',
@@ -172,6 +172,7 @@ function App() {
   const [mode, setMode] = useState<Mode>('practice')
   const [initialRootSelection] = useState(() => getSavedRootSelection(language))
   const [rootSize, setRootSize] = useState<RootSize>(initialRootSelection.rootSize)
+  const [battleRootSize, setBattleRootSize] = useState<RootSize>(loadBattleRootSize)
   const [rootIndex, setRootIndex] = useState(initialRootSelection.rootIndex)
   const [attemptedRoots, setAttemptedRoots] = useState<string[]>([])
   const [completedRoots, setCompletedRoots] = useState<string[]>([])
@@ -240,9 +241,8 @@ function App() {
   const selectMode = (nextMode: Mode) => {
     setMode(nextMode)
     if (nextMode === 'battle') {
-      const nextRoot = randomBattleRoot(roots)
+      const nextRoot = randomBattleRoot(roots, Math.random, battleRootSize)
       setRootIndex(nextRoot.index)
-      setRootSize(nextRoot.size)
       setSide(nextRoot.side)
     } else {
       const savedSelection = getSavedRootSelection(language)
@@ -273,8 +273,7 @@ function App() {
 
   const newRound = () => {
     if (mode === 'battle') {
-      const nextRoot = randomBattleRoot(roots)
-      setRootSize(nextRoot.size)
+      const nextRoot = randomBattleRoot(roots, Math.random, battleRootSize)
       resetRound(nextRoot.index, nextRoot.side)
     } else {
       resetRound()
@@ -282,9 +281,8 @@ function App() {
   }
 
   const nextBattleRoot = () => {
-    const nextRoot = randomBattleRoot(roots)
+    const nextRoot = randomBattleRoot(roots, Math.random, battleRootSize)
     setRootIndex(nextRoot.index)
-    setRootSize(nextRoot.size)
     setSide(nextRoot.side)
     setUsedHooks([])
     setWrongGuesses([])
@@ -304,8 +302,7 @@ function App() {
     setBestStreak(0)
     setMisses(0)
     if (mode === 'battle') {
-      const nextRoot = randomBattleRoot(nextRoots)
-      setRootSize(nextRoot.size)
+      const nextRoot = randomBattleRoot(nextRoots, Math.random, battleRootSize)
       resetRound(nextRoot.index, nextRoot.side)
     } else {
       const nextRootIndex = nextRoots.findIndex((root) => root.value.length === rootSize)
@@ -323,6 +320,13 @@ function App() {
     saveRootSize(size)
     saveRoot(language, roots[firstRootIndex].value)
     resetRound(firstRootIndex)
+  }
+
+  const selectBattleRootSize = (size: RootSize) => {
+    const nextRoot = randomBattleRoot(roots, Math.random, size)
+    setBattleRootSize(size)
+    saveBattleRootSize(size)
+    resetRound(nextRoot.index, nextRoot.side)
   }
 
   const selectRoot = (index: number) => {
@@ -431,6 +435,9 @@ function App() {
   }
 
   const rootHint = language === 'EN' ? 'Add a letter before or after this root' : 'Añade una letra antes o después de esta raíz'
+  const rootSideLabel = (targetSide: Side) => targetSide === 'left'
+    ? `_${displayWord(currentRoot.value)}`
+    : `${displayWord(currentRoot.value)}_`
 
   return (
       <div className="app-shell">
@@ -467,6 +474,15 @@ function App() {
               ))}
             </div>
             <div className="mode-description">{isTimed && <><Icon name="clock" />{t.timed}</>}</div>
+            {mode === 'battle' && <label className="battle-size-control">
+              <span>{t.rootLength}</span>
+              <select value={battleRootSize} onChange={(event) => {
+                const size = Number(event.target.value)
+                if (size === 2 || size === 3 || size === 4) selectBattleRootSize(size)
+              }} aria-label={t.rootLength}>
+                {([2, 3, 4] as const).map((size) => <option key={size} value={size}>{size} {language === 'EN' ? 'letters' : 'letras'}</option>)}
+              </select>
+            </label>}
           </div>
 
           <div className={`dashboard ${mode === 'battle' && !revealAnswers ? 'dashboard-no-sidebar' : ''}`}>
@@ -501,18 +517,18 @@ function App() {
                   <div className="word-zone-label">
                     <span className="side-indicator">{side === 'left' ? '01' : '02'}</span>
                     <div><strong>{side === 'left' ? t.left : t.right}</strong><span>{side === 'left' ? t.leftHint : t.rightHint}</span></div>
-                    <span className={`side-pill ${side}`}>{side === 'left' ? t.leftHooks : t.rightHooks}</span>
+                    <span className={`side-pill ${side}`} aria-label={side === 'left' ? t.leftHooks : t.rightHooks}>{rootSideLabel(side)}</span>
                   </div>
 
                   <div className="word-trail" aria-live="polite">
                     {resultsHidden || trail.length === 0 ? (
                         <div className="empty-trail">
-                          <span className="root-word">{displayWord(currentRoot.value)}</span>
+                          <span className="root-word">{rootSideLabel(side)}</span>
                           <span className="empty-prompt"><span className="sparkle">✦</span>{t.rootHint}</span>
                         </div>
                     ) : (
                         <div className="trail-words">
-                          <span className="trail-root">{displayWord(currentRoot.value)}</span>
+                          <span className="trail-root">{rootSideLabel(side)}</span>
                           <span className="trail-connector" />
                           {trail.slice(-5).map((word, index) => (
                               <span className="trail-entry" key={`${word}-${index}`}>
@@ -532,8 +548,10 @@ function App() {
                   </div>
 
                   <div className={`feedback-line ${feedback === t.incorrect || feedback === t.repeated ? 'feedback-warn' : ''} ${feedback === t.completed ? 'feedback-success' : ''}`} aria-live="polite">
-                    <span className="feedback-mark">{feedback === t.incorrect || feedback === t.repeated ? '!' : feedback === t.completed ? '✓' : '✦'}</span>
-                    <span>{mode === 'ninja' && !playing && seconds > 0 && totalHooks === 0 ? t.noHooksOnSide : feedback}</span>
+                    {(feedback || mode === 'ninja' && !playing && seconds > 0 && totalHooks === 0) && <>
+                      <span className="feedback-mark">{feedback === t.incorrect || feedback === t.repeated ? '!' : feedback === t.completed ? '✓' : '✦'}</span>
+                      <span>{mode === 'ninja' && !playing && seconds > 0 && totalHooks === 0 ? t.noHooksOnSide : feedback}</span>
+                    </>}
                     {roundComplete && (!resultsHidden || mode !== 'battle') && <button className="next-root-button" onClick={() => {
                       if (mode === 'battle') {
                         nextBattleRoot()
@@ -627,7 +645,7 @@ function App() {
                 <div className="side-card-title"><div><span className="section-kicker">{revealAnswers ? t.correctAnswers : t.available}</span><h2>{language === 'EN' ? 'The hook board' : 'Tablero de ganchos'}</h2></div><span className="hook-count">{completedCount}<span>/{totalHooks}</span></span></div>
                 <p className="side-description">{language === 'EN' ? 'Every letter is a new way to grow your word.' : 'Cada letra es una nueva forma de ampliar tu palabra.'}</p>
                 {(!isTimed || side === 'left') && <div className="hook-list">
-                  <div className="hook-list-heading"><span className="hook-direction">←</span><strong>{t.leftHooks}</strong><span>{currentRoot.left.length - usedHooks.filter((key) => key.startsWith('left:')).length} {t.remaining}</span></div>
+                  <div className="hook-list-heading"><span className="hook-direction">←</span><strong aria-label={t.leftHooks}>{rootSideLabel('left')}</strong><span>{currentRoot.left.length - usedHooks.filter((key) => key.startsWith('left:')).length} {t.remaining}</span></div>
                   <div className="hook-letters">
                     {currentRoot.left.map((letter) => {
                       const found = usedHooks.includes(`left:${letter}`)
@@ -637,7 +655,7 @@ function App() {
                   </div>
                 </div>}
                 {(!isTimed || side === 'right') && <div className="hook-list">
-                  <div className="hook-list-heading"><span className="hook-direction">→</span><strong>{t.rightHooks}</strong><span>{currentRoot.right.length - usedHooks.filter((key) => key.startsWith('right:')).length} {t.remaining}</span></div>
+                  <div className="hook-list-heading"><span className="hook-direction">→</span><strong aria-label={t.rightHooks}>{rootSideLabel('right')}</strong><span>{currentRoot.right.length - usedHooks.filter((key) => key.startsWith('right:')).length} {t.remaining}</span></div>
                   <div className="hook-letters">
                     {currentRoot.right.map((letter) => {
                       const found = usedHooks.includes(`right:${letter}`)
