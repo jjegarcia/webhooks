@@ -3,8 +3,23 @@ export type RootSize = 2 | 3 | 4
 export type Side = 'left' | 'right'
 const rootSizes: readonly number[] = [2, 3, 4]
 
-export function randomBattleRoot(roots: BattleRoot[], random = Math.random): { index: number; size: RootSize; side: Side } {
+export function randomBattleRoot(roots: BattleRoot[], random = Math.random, requestedSize?: RootSize): { index: number; size: RootSize; side: Side } {
   const sides: Side[] = ['left', 'right']
+  if (requestedSize !== undefined) {
+    const availableSides = sides.filter((side) => roots.some((root) =>
+      root.value.length === requestedSize && root[side].length > 0))
+    if (availableSides.length === 0) throw new Error(`No playable ${requestedSize}-letter battle roots are available`)
+    const side = availableSides[Math.floor(random() * availableSides.length)]
+    const entries = roots
+        .map((root, index) => ({ root, index }))
+        .filter(({ root }) => root.value.length === requestedSize && root[side].length > 0)
+    return {
+      index: entries[Math.floor(random() * entries.length)].index,
+      size: requestedSize,
+      side,
+    }
+  }
+
   const availableSides = sides.filter((side) => roots.some((root) =>
     rootSizes.includes(root.value.length) && root[side].length > 0))
   if (availableSides.length === 0) throw new Error('No playable battle roots are available')

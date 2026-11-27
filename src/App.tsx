@@ -8,7 +8,7 @@ import { loadLanguage, saveLanguage } from './languagePreference'
 import { getRoundRules } from './roundRules'
 import type { Mode } from './roundRules'
 import { loadRoot, saveRoot } from './rootPreference'
-import { loadRootSize, saveRootSize } from './rootSizePreference'
+import { loadBattleRootSize, loadRootSize, saveBattleRootSize, saveRootSize } from './rootSizePreference'
 import { rootsByLanguage } from './roots'
 
 
@@ -172,6 +172,7 @@ function App() {
   const [mode, setMode] = useState<Mode>('practice')
   const [initialRootSelection] = useState(() => getSavedRootSelection(language))
   const [rootSize, setRootSize] = useState<RootSize>(initialRootSelection.rootSize)
+  const [battleRootSize, setBattleRootSize] = useState<RootSize>(loadBattleRootSize)
   const [rootIndex, setRootIndex] = useState(initialRootSelection.rootIndex)
   const [attemptedRoots, setAttemptedRoots] = useState<string[]>([])
   const [completedRoots, setCompletedRoots] = useState<string[]>([])
@@ -240,9 +241,8 @@ function App() {
   const selectMode = (nextMode: Mode) => {
     setMode(nextMode)
     if (nextMode === 'battle') {
-      const nextRoot = randomBattleRoot(roots)
+      const nextRoot = randomBattleRoot(roots, Math.random, battleRootSize)
       setRootIndex(nextRoot.index)
-      setRootSize(nextRoot.size)
       setSide(nextRoot.side)
     } else {
       const savedSelection = getSavedRootSelection(language)
@@ -273,8 +273,7 @@ function App() {
 
   const newRound = () => {
     if (mode === 'battle') {
-      const nextRoot = randomBattleRoot(roots)
-      setRootSize(nextRoot.size)
+      const nextRoot = randomBattleRoot(roots, Math.random, battleRootSize)
       resetRound(nextRoot.index, nextRoot.side)
     } else {
       resetRound()
@@ -282,9 +281,8 @@ function App() {
   }
 
   const nextBattleRoot = () => {
-    const nextRoot = randomBattleRoot(roots)
+    const nextRoot = randomBattleRoot(roots, Math.random, battleRootSize)
     setRootIndex(nextRoot.index)
-    setRootSize(nextRoot.size)
     setSide(nextRoot.side)
     setUsedHooks([])
     setWrongGuesses([])
@@ -304,8 +302,7 @@ function App() {
     setBestStreak(0)
     setMisses(0)
     if (mode === 'battle') {
-      const nextRoot = randomBattleRoot(nextRoots)
-      setRootSize(nextRoot.size)
+      const nextRoot = randomBattleRoot(nextRoots, Math.random, battleRootSize)
       resetRound(nextRoot.index, nextRoot.side)
     } else {
       const nextRootIndex = nextRoots.findIndex((root) => root.value.length === rootSize)
@@ -323,6 +320,13 @@ function App() {
     saveRootSize(size)
     saveRoot(language, roots[firstRootIndex].value)
     resetRound(firstRootIndex)
+  }
+
+  const selectBattleRootSize = (size: RootSize) => {
+    const nextRoot = randomBattleRoot(roots, Math.random, size)
+    setBattleRootSize(size)
+    saveBattleRootSize(size)
+    resetRound(nextRoot.index, nextRoot.side)
   }
 
   const selectRoot = (index: number) => {
@@ -470,6 +474,15 @@ function App() {
               ))}
             </div>
             <div className="mode-description">{isTimed && <><Icon name="clock" />{t.timed}</>}</div>
+            {mode === 'battle' && <label className="battle-size-control">
+              <span>{t.rootLength}</span>
+              <select value={battleRootSize} onChange={(event) => {
+                const size = Number(event.target.value)
+                if (size === 2 || size === 3 || size === 4) selectBattleRootSize(size)
+              }} aria-label={t.rootLength}>
+                {([2, 3, 4] as const).map((size) => <option key={size} value={size}>{size} {language === 'EN' ? 'letters' : 'letras'}</option>)}
+              </select>
+            </label>}
           </div>
 
           <div className={`dashboard ${mode === 'battle' && !revealAnswers ? 'dashboard-no-sidebar' : ''}`}>

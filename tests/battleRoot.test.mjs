@@ -21,3 +21,8 @@ test('skips unavailable sizes, sides, and roots without hooks on the selected si
   assert.deepEqual(randomBattleRoot(roots.slice(3), () => 0.99), { index: 0, size: 4, side: 'left' })
   assert.throws(() => randomBattleRoot([roots[4]]), /No playable battle roots/)
 })
+
+test('selects only playable roots of the requested size', () => {
+  assert.deepEqual(randomBattleRoot(roots, () => 0.99, 3), { index: 2, size: 3, side: 'right' })
+  assert.throws(() => randomBattleRoot([roots[4]], Math.random, 4), /No playable 4-letter battle roots/)
+})
