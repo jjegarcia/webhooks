@@ -504,9 +504,7 @@ function App() {
                   <div className="board-actions">
                     {isTimed && !playing ? (
                         <button className="primary-button compact-button" onClick={handleStart} disabled={!canStart}><span className="play-triangle">▶</span>{seconds === 0 || roundComplete ? t.newRound : t.start}</button>
-                    ) : mode !== 'battle' && (
-                        <button className="subtle-button" onClick={newRound}><Icon name="refresh" />{t.newRound}</button>
-                    )}
+                    ) : null}
                     {isTimed && playing && <button className="stop-button" onClick={handleStop} aria-label={t.stop} title={t.stop}><span className="stop-icon" aria-hidden="true" /></button>}
                   </div>
                 </div>
