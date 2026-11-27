@@ -58,7 +58,7 @@ const copy = {
     rootHint: 'A fresh root is waiting',
     trail: 'Your word trail',
     trailHint: 'Each new word starts with the same root.',
-    welcome: 'Ready when you are',
+    welcome: '',
     correct: 'Nice hook! Keep going.',
     incorrect: 'Not quite — try another letter.',
     repeated: 'You already found that hook.',
@@ -117,7 +117,7 @@ const copy = {
     rootHint: 'Una nueva raíz te espera',
     trail: 'Tu camino de palabras',
     trailHint: 'Cada palabra nueva empieza con la misma raíz.',
-    welcome: 'Cuando quieras',
+    welcome: '',
     correct: '¡Buen gancho! Sigue así.',
     incorrect: 'No exactamente. Prueba otra letra.',
     repeated: 'Ya encontraste ese gancho.',
@@ -535,8 +535,10 @@ function App() {
                   </div>
 
                   <div className={`feedback-line ${feedback === t.incorrect || feedback === t.repeated ? 'feedback-warn' : ''} ${feedback === t.completed ? 'feedback-success' : ''}`} aria-live="polite">
-                    <span className="feedback-mark">{feedback === t.incorrect || feedback === t.repeated ? '!' : feedback === t.completed ? '✓' : '✦'}</span>
-                    <span>{mode === 'ninja' && !playing && seconds > 0 && totalHooks === 0 ? t.noHooksOnSide : feedback}</span>
+                    {(feedback || mode === 'ninja' && !playing && seconds > 0 && totalHooks === 0) && <>
+                      <span className="feedback-mark">{feedback === t.incorrect || feedback === t.repeated ? '!' : feedback === t.completed ? '✓' : '✦'}</span>
+                      <span>{mode === 'ninja' && !playing && seconds > 0 && totalHooks === 0 ? t.noHooksOnSide : feedback}</span>
+                    </>}
                     {roundComplete && (!resultsHidden || mode !== 'battle') && <button className="next-root-button" onClick={() => {
                       if (mode === 'battle') {
                         nextBattleRoot()
