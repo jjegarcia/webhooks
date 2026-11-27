@@ -506,7 +506,7 @@ function App() {
                     ) : mode !== 'battle' && (
                         <button className="subtle-button" onClick={newRound}><Icon name="refresh" />{t.newRound}</button>
                     )}
-                    {isTimed && mode !== 'battle' && playing && <button className="stop-button" onClick={handleStop} aria-label={t.stop} title={t.stop}><span className="stop-icon" aria-hidden="true" /></button>}
+                    {isTimed && playing && <button className="stop-button" onClick={handleStop} aria-label={t.stop} title={t.stop}><span className="stop-icon" aria-hidden="true" /></button>}
                   </div>
                 </div>
 
