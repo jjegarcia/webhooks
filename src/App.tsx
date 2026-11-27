@@ -431,6 +431,9 @@ function App() {
   }
 
   const rootHint = language === 'EN' ? 'Add a letter before or after this root' : 'Añade una letra antes o después de esta raíz'
+  const rootSideLabel = (targetSide: Side) => targetSide === 'left'
+    ? `_${displayWord(currentRoot.value)}`
+    : `${displayWord(currentRoot.value)}_`
 
   return (
       <div className="app-shell">
@@ -501,18 +504,18 @@ function App() {
                   <div className="word-zone-label">
                     <span className="side-indicator">{side === 'left' ? '01' : '02'}</span>
                     <div><strong>{side === 'left' ? t.left : t.right}</strong><span>{side === 'left' ? t.leftHint : t.rightHint}</span></div>
-                    <span className={`side-pill ${side}`}>{side === 'left' ? t.leftHooks : t.rightHooks}</span>
+                    <span className={`side-pill ${side}`} aria-label={side === 'left' ? t.leftHooks : t.rightHooks}>{rootSideLabel(side)}</span>
                   </div>
 
                   <div className="word-trail" aria-live="polite">
                     {resultsHidden || trail.length === 0 ? (
                         <div className="empty-trail">
-                          <span className="root-word">{displayWord(currentRoot.value)}</span>
+                          <span className="root-word">{rootSideLabel(side)}</span>
                           <span className="empty-prompt"><span className="sparkle">✦</span>{t.rootHint}</span>
                         </div>
                     ) : (
                         <div className="trail-words">
-                          <span className="trail-root">{displayWord(currentRoot.value)}</span>
+                          <span className="trail-root">{rootSideLabel(side)}</span>
                           <span className="trail-connector" />
                           {trail.slice(-5).map((word, index) => (
                               <span className="trail-entry" key={`${word}-${index}`}>
@@ -627,7 +630,7 @@ function App() {
                 <div className="side-card-title"><div><span className="section-kicker">{revealAnswers ? t.correctAnswers : t.available}</span><h2>{language === 'EN' ? 'The hook board' : 'Tablero de ganchos'}</h2></div><span className="hook-count">{completedCount}<span>/{totalHooks}</span></span></div>
                 <p className="side-description">{language === 'EN' ? 'Every letter is a new way to grow your word.' : 'Cada letra es una nueva forma de ampliar tu palabra.'}</p>
                 {(!isTimed || side === 'left') && <div className="hook-list">
-                  <div className="hook-list-heading"><span className="hook-direction">←</span><strong>{t.leftHooks}</strong><span>{currentRoot.left.length - usedHooks.filter((key) => key.startsWith('left:')).length} {t.remaining}</span></div>
+                  <div className="hook-list-heading"><span className="hook-direction">←</span><strong aria-label={t.leftHooks}>{rootSideLabel('left')}</strong><span>{currentRoot.left.length - usedHooks.filter((key) => key.startsWith('left:')).length} {t.remaining}</span></div>
                   <div className="hook-letters">
                     {currentRoot.left.map((letter) => {
                       const found = usedHooks.includes(`left:${letter}`)
@@ -637,7 +640,7 @@ function App() {
                   </div>
                 </div>}
                 {(!isTimed || side === 'right') && <div className="hook-list">
-                  <div className="hook-list-heading"><span className="hook-direction">→</span><strong>{t.rightHooks}</strong><span>{currentRoot.right.length - usedHooks.filter((key) => key.startsWith('right:')).length} {t.remaining}</span></div>
+                  <div className="hook-list-heading"><span className="hook-direction">→</span><strong aria-label={t.rightHooks}>{rootSideLabel('right')}</strong><span>{currentRoot.right.length - usedHooks.filter((key) => key.startsWith('right:')).length} {t.remaining}</span></div>
                   <div className="hook-letters">
                     {currentRoot.right.map((letter) => {
                       const found = usedHooks.includes(`right:${letter}`)
